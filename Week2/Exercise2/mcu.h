@@ -1,5 +1,5 @@
 /**
- *  This header stores target-specific constant that relate to MCU itself 
+ *  This header stores target-specific constant that relate to MCU itself
  *  (excluding periferals which are confiured in own headers)
  * */
 
