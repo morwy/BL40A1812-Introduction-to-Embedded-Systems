@@ -1,16 +1,21 @@
 # Prerequisites
 *.d
+*.atsuo
+Makefile
 
 # Object files
 *.o
 *.ko
 *.obj
-*.elf
 
 # Linker output
 *.ilk
 *.map
 *.exp
+*.lss
+*.srec
+*.mk
+*.eep
 
 # Precompiled Headers
 *.gch
