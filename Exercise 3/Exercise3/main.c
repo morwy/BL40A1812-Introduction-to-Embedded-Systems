@@ -118,12 +118,14 @@ static void on_loop(state_t current_state, int8_t *requested_floor, int8_t *curr
 		break;
 	case GOINGUP:
 		_delay_ms(FLOOR_MOVING_SPEED_MS);
+		floor_led_off(*current_floor);
 		(*current_floor)++;
 		floor_led_on(*current_floor);
 		break;
 	case GOINGDOWN:
 		floor_led_off(*current_floor);
 		(*current_floor)--;
+		floor_led_on(*current_floor);
 		_delay_ms(FLOOR_MOVING_SPEED_MS);
 		break;
 	}
