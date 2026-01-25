@@ -3,8 +3,8 @@
 
 #include "board_config_2560.h"
 #include "avr_gpio.h"
-/// GPIO pin mappings from Arduino MEGA pins to exercise 3 circuit
 
+/// GPIO pin mappings from Arduino MEGA pins to exercise 3 circuit
 #define BUTTON_FLOOR_1_PORT IO_22_PORT
 #define BUTTON_FLOOR_1_DIRECTION IO_22_DIRECTION
 #define BUTTON_FLOOR_1_INPUT IO_22_INPUT
