@@ -52,7 +52,7 @@ state_t idle_state_transition_check(const int8_t requested_floor, const int8_t c
 	{
 		return IDLE;
 	}
-	
+
 	// If invalid input -> go to FAULT;
 	if ((requested_floor > MAX_FLOOR) || (requested_floor < MIN_FLOOR))
 	{
@@ -64,7 +64,7 @@ state_t idle_state_transition_check(const int8_t requested_floor, const int8_t c
 		// If valid movement request -> go to DOOR_CLOSING;
 		return DOOR_CLOSING;
 	}
-	
+
 	return IDLE;
 }
 
@@ -109,7 +109,23 @@ static void on_enter(state_t new_state, int8_t *requested_floor, int8_t *current
 static void on_loop(state_t current_state, int8_t *requested_floor, int8_t *current_floor)
 {
 	printf("on_loop current_state: %d\r\n", current_state);
-	...;
+	switch (current_state)
+	{
+	case IDLE:
+		_delay_ms(10);
+		*requested_floor = floor_button_choice();
+		break;
+	case GOINGUP:
+		_delay_ms(FLOOR_MOVING_SPEED_MS);
+		*current_floor++;
+		floor_led_on(current_floor);
+		break;
+	case GOINGDOWN:
+		floor_led_off(current_floor);
+		*current_floor--;
+		_delay_ms(FLOOR_MOVING_SPEED_MS);
+		break;
+	}
 }
 
 static void on_exit(state_t old_state, int8_t *requested_floor, int8_t *current_floor)
@@ -143,13 +159,13 @@ int main(void)
 		set_as_output(&floor_leds[i - MIN_FLOOR]);
 		set_as_input_pull_up(&floor_buttons[i - MIN_FLOOR]);
 	}
-	
+
 	clear_gpio(&movement_led);
 	set_as_output(&movement_led);
 	set_gpio(&doors_led);
 	set_as_output(&doors_led);
 	printf("Configuring IO done.\r\n");
-	
+
 	/* elevator variables, elevator has 5 floors */
 	volatile state_t elevator_state = IDLE;
 	int8_t requested_floor = 1;
