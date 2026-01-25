@@ -35,13 +35,14 @@ static int8_t floor_button_choice(void)
 
 static void floor_led_on(const int8_t current_floor)
 {
-	...;
+	printf("Setting floor %d LED ON.\r\n", current_floor);
 	set_gpio(&floor_leds[current_floor - MIN_FLOOR]);
 }
 
 static void floor_led_off(const int8_t current_floor)
 {
-	...;
+	printf("Setting floor %d LED OFF.\r\n", current_floor);
+	clear_gpio(&floor_leds[current_floor - MIN_FLOOR]);
 }
 
 state_t idle_state_transition_check(const int8_t requested_floor, const int8_t current_floor)
