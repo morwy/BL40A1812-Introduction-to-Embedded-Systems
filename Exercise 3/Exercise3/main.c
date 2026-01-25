@@ -140,7 +140,7 @@ static void on_exit(state_t old_state, int8_t *requested_floor, int8_t *current_
 		break;
 	case DOOR_CLOSING:
 		_delay_ms(DOOR_CLOSE_OPEN_DURATION_MS);
-		floor_led_off(*current_floor);
+		clear_gpio(&doors_led);
 		break;
 	}
 }
