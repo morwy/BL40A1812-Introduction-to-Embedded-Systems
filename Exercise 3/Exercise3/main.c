@@ -130,7 +130,18 @@ static void on_loop(state_t current_state, int8_t *requested_floor, int8_t *curr
 
 static void on_exit(state_t old_state, int8_t *requested_floor, int8_t *current_floor)
 {
-	...;
+	printf("on_exit old_state: %d\r\n", old_state);
+	switch (old_state)
+	{
+	case GOINGUP:
+	case GOINGDOWN:
+		clear_gpio(&movement_led);
+		break;
+	case DOOR_CLOSING:
+		_delay_ms(DOOR_CLOSE_OPEN_DURATION_MS);
+		floor_led_off(*current_floor);
+		break;
+	}
 }
 
 /// There is not much we can do for now. This function will be improved in future.
