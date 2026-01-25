@@ -135,6 +135,9 @@
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="avr_gpio.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="bit_ops.h">
       <SubType>compile</SubType>
     </Compile>
@@ -145,6 +148,9 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="mcu.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="pin_config.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="pin_config.h">

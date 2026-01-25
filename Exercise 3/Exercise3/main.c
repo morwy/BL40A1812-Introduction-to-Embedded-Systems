@@ -94,8 +94,9 @@ static void on_enter(state_t new_state, int8_t *requested_floor, int8_t *current
 		if (*current_floor > MAX_FLOOR)
 			*current_floor = MAX_FLOOR;
 		*requested_floor = *current_floor;
+		
 		// Blink movement LED to indicate fault.
-		for (int8_t blink_amount = 0; blink_amount < (FAULT_BLINK_DURATION_MS/FAULT_BLINK
+		for (int8_t blink_amount = 0; blink_amount < (FAULT_BLINK_DURATION_MS/FAULT_BLINK_PERIOD_MS); blink_amount++)
 		{
 			set_gpio(&movement_led);
 			_delay_ms(FAULT_BLINK_PERIOD_MS / 2.);
