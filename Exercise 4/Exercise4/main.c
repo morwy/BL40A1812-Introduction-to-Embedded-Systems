@@ -42,6 +42,30 @@ static void handle_error(uint8_t return_code)
 	}
 }
 
+static void setup(void)
+{
+	// Initialize serial port for standard library.
+	printf("Initializing serial port.\r\n");
+	uint8_t rc = setup_uart_io();
+	handle_error(rc);
+	printf("Serial port initialized.\r\n");
+
+	// Initialize keypad.
+	printf("Initializing keypad.\r\n");
+	rc = KEYPAD_Init();
+	handle_error(rc);
+	printf("Keypad initialized.\r\n");
+
+	// Initialize LCD.
+	printf("Initializing LCD.\r\n");
+	rc = lcd_init(LCD_DISP_ON);
+	handle_error(rc);
+	lcd_clrscr();
+	printf("LCD initialized.\r\n");
+
+	write_to_lcd("Ready");
+}
+
 int main(void)
 {
 	static char key_str[32];
