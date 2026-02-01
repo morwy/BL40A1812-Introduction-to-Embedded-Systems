@@ -13,7 +13,7 @@ static void handle_error(uint8_t return_code)
 	if (return_code)
 	{
 		while (1)
-		;
+			;
 	}
 }
 
@@ -45,36 +45,58 @@ static void write_to_lcd(const char *string)
 
 static void setup(void)
 {
-	// Initialize serial port for standard library.
-	printf("Initializing serial port.\r\n");
-	uint8_t rc = setup_uart_io();
-	handle_error(rc);
-	printf("Serial port initialized.\r\n");
+    // Initialize serial port for standard library
+    uint8_t rc = setup_uart_io();
+    handle_error(rc);
 
-	// Initialize keypad.
-	printf("Initializing keypad.\r\n");
-	rc = KEYPAD_Init();
-	handle_error(rc);
-	printf("Keypad initialized.\r\n");
+    // Initialize keypad
+    KEYPAD_Init();
+    printf("Keypad initialized.\r\n");
 
-	// Initialize LCD.
-	printf("Initializing LCD.\r\n");
-	lcd_init(LCD_DISP_ON);
-	lcd_clrscr();
-	printf("LCD initialized.\r\n");
+    // Initialize LCD and clear display
+    lcd_init(LCD_DISP_ON);
+    printf("LCD initialized.\r\n");
+    lcd_clrscr();
+    printf("LCD cleared.\r\n");
 
-	write_to_lcd("Ready");
+    //Write "Ready" to LCD
+    write_to_lcd("Ready");
 }
 
 int main(void)
 {
 	static char key_str[32];
 	setup();
+
 	uint32_t memory = 0;
+
 	while (1)
 	{
-		/************************************************************************/
-		/*                                                                      */
-		/************************************************************************/
+		printf("Waiting for key press...\r\n");
+		uint8_t key = KEYPAD_GetKey(); // Wait for a key press
+		printf("Key pressed: '%c'\r\n", key);
+
+		uint8_t key_value = key - '0'; // Convert ASCII to integer value
+
+		if (key_value <= 9)
+		{ // If key is a digit
+			if ((memory * 10 + key_value) <= UINT32_MAX)
+			{ // Check for overflow
+				memory = memory * 10 + key_value;
+			}
+		}
+		else if (key == '*')
+		{
+			memory = 0;
+		}
+
+		lcd_clrscr(); // Clear LCD before displaying new info
+		snprintf(key_str, sizeof(key_str), "Key pressed: %c", key);
+		write_to_lcd(key_str);
+
+		write_to_lcd("\n"); // New line on LCD
+
+		snprintf(key_str, sizeof(key_str), "Mem: %" PRIu32 "", memory);
+		write_to_lcd(key_str);
 	}
 }
