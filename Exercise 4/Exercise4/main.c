@@ -2,8 +2,20 @@
 #include <string.h>
 #include <stdio.h>
 #include <inttypes.h>
+#include "lcd.h"
 
 #define LCD_MAX_STRING (32)
+
+/// There is not much we can do for now. This function will be improved in future.
+static void handle_error(uint8_t return_code)
+{
+	// Non-zero return code indicates critical fault
+	if (return_code)
+	{
+		while (1)
+		;
+	}
+}
 
 /**
  * Protected write to LCD that checks that provided pointer is a valid
@@ -31,17 +43,6 @@ static void write_to_lcd(const char *string)
 	}
 }
 
-/// There is not much we can do for now. This function will be improved in future.
-static void handle_error(uint8_t return_code)
-{
-	// Non-zero return code indicates critical fault
-	if (return_code)
-	{
-		while (1)
-			;
-	}
-}
-
 static void setup(void)
 {
 	// Initialize serial port for standard library.
@@ -58,8 +59,7 @@ static void setup(void)
 
 	// Initialize LCD.
 	printf("Initializing LCD.\r\n");
-	rc = lcd_init(LCD_DISP_ON);
-	handle_error(rc);
+	lcd_init(LCD_DISP_ON);
 	lcd_clrscr();
 	printf("LCD initialized.\r\n");
 
