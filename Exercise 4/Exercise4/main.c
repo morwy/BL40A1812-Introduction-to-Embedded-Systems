@@ -31,6 +31,17 @@ static void write_to_lcd(const char *string)
 	}
 }
 
+/// There is not much we can do for now. This function will be improved in future.
+static void handle_error(uint8_t return_code)
+{
+	// Non-zero return code indicates critical fault
+	if (return_code)
+	{
+		while (1)
+			;
+	}
+}
+
 int main(void)
 {
 	static char key_str[32];
