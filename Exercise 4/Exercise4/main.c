@@ -80,9 +80,12 @@ int main(void)
 
 		if (key_value <= 9)
 		{ // If key is a digit
-			if ((memory * 10 + key_value) <= UINT32_MAX)
+			uint64_t new_value = ((uint64_t)memory) * 10ULL + key_value;
+			if (new_value <= UINT32_MAX)
 			{ // Check for overflow
-				memory = memory * 10 + key_value;
+				memory = ((uint32_t)new_value);
+			} else {
+				printf("Overflow detected, skipping.\r\n");
 			}
 		}
 		else if (key == '*')
