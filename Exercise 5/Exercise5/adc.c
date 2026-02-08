@@ -3,7 +3,6 @@
 #include <avr/interrupt.h>
 #include <avr/io.h>
 #include <stdint.h>
-#include <stdbool.h>
 #include "bit_ops.h"
 
 /// Human-readable names

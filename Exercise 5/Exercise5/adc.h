@@ -1,6 +1,7 @@
 #ifndef ADC_H
 #define ADC_H
 
+#include <stdbool.h>
 #include <stdint.h>
 
 /** Set up the ADC conversion.
