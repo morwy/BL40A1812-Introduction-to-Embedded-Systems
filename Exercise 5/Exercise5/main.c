@@ -1,10 +1,13 @@
+#include "uart.h"
+#include "timer0.h"
+#include "adc.h"
+
 #include <util/delay.h>
 #include <string.h>
 #include <stdio.h>
-#include <inttypes.h>
-#include "lcd.h"
-
-#define LCD_MAX_STRING (32)
+#include <avr/interrupt.h>
+#include <avr/sleep.h>
+#include <stdbool.h>
 
 /// There is not much we can do for now. This function will be improved in future.
 static void handle_error(uint8_t return_code)
@@ -17,89 +20,49 @@ static void handle_error(uint8_t return_code)
 	}
 }
 
-/**
- * Protected write to LCD that checks that provided pointer is a valid
- * null-terminated string.
- * @param string Pointer to the string that should be printed
- */
-static void write_to_lcd(const char *string)
-{
-	uint8_t len = strnlen(string, LCD_MAX_STRING);
-	if (LCD_MAX_STRING == len)
-	{
-		printf("Failed to print LCD string. Too big or lacks NULL-terminator.\r\n");
-		// Since we have null-terminator we print the bad string one character at a time.
-		for (uint8_t i = 0; i < len; i++)
-		{
-			printf("%c", string[i]);
-		}
-		printf("\r\n");
-		handle_error(1);
-	}
-	else
-	{
-		printf("LCD output: '%s'\r\n", string);
-		lcd_puts(string);
-	}
-}
-
 static void setup(void)
 {
-    // Initialize serial port for standard library
-    uint8_t rc = setup_uart_io();
-    handle_error(rc);
+	// Initialize serial port for standard library
+	printf("Setting up the serial port...\r\n");
+	uint8_t rc = setup_uart_io();
+	handle_error(rc);
 
-    // Initialize keypad
-    KEYPAD_Init();
-    printf("Keypad initialized.\r\n");
+	// Set Port C pin 3 as input without pull-up
+	DDRC &= ~(1 << DDC3);	 // Clear bit 3 to set as input
+	PORTC &= ~(1 << PORTC3); // Clear bit 3 to disable pull-up
 
-    // Initialize LCD and clear display
-    lcd_init(LCD_DISP_ON);
-    printf("LCD initialized.\r\n");
-    lcd_clrscr();
-    printf("LCD cleared.\r\n");
+	// Call setup function of the Timer 0
+	printf("Setting up Timer 0...\r\n");
+	setup_timer0();
 
-    //Write "Ready" to LCD
-    write_to_lcd("Ready");
-}
+	// Call setup function of the ADC
+	printf("Setting up ADC...\r\n");
+	setup_adc();
 
-int main(void)
-{
-	static char key_str[32];
-	setup();
+	// Configure sleep mode of the processor set_sleep_mode(SLEEP_MODE_IDLE);
+	printf("Configuring sleep mode...\r\n");
+	set_sleep_mode(SLEEP_MODE_IDLE);
 
-	uint32_t memory = 0;
+	// Enable interrupts globally with sei();
+	printf("Enabling global interrupts...\r\n");
+	sei();
 
-	while (1)
-	{
-		printf("Waiting for key press...\r\n");
-		uint8_t key = KEYPAD_GetKey(); // Wait for a key press
-		printf("Key pressed: '%c'\r\n", key);
+	// Initialize LCD by calling lcd_init(LCD_DISP_ON);
+	printf("Initializing LCD...\r\n");
+	lcd_init(LCD_DISP_ON);
+	printf("LCD initialized.\r\n");
 
-		uint8_t key_value = key - '0'; // Convert ASCII to integer value
+	// Clear LCD screen with lcd_clrscr();
+	printf("Clearing LCD screen...\r\n");
+	lcd_clrscr();
+	printf("LCD cleared.\r\n");
 
-		if (key_value <= 9)
-		{ // If key is a digit
-			uint64_t new_value = ((uint64_t)memory) * 10ULL + key_value;
-			if (new_value <= UINT32_MAX)
-			{ // Check for overflow
-				memory = ((uint32_t)new_value);
-			} else {
-				printf("Overflow detected, skipping.\r\n");
-			}
-		}
-		else if (key == '*')
-		{
-			memory = 0;
-		}
+	// Write ’Ready’ to LCD with write_to_lcd implemented before
+	write_to_lcd("Ready");
 
-		lcd_clrscr(); // Clear LCD before displaying new info
-		snprintf(key_str, sizeof(key_str), "Key pressed: %c", key);
-		write_to_lcd(key_str);
+	// Busy-wait 1 second
+	printf("Waiting for 1 second...\r\n");
+	_delay_ms(1000);
 
-		write_to_lcd("\n"); // New line on LCD
-
-		snprintf(key_str, sizeof(key_str), "Mem: %" PRIu32 "", memory);
-		write_to_lcd(key_str);
-	}
+	printf("Done.\r\n");
 }
