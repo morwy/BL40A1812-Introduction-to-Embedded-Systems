@@ -86,6 +86,6 @@ void setup_timer0()
 	TIMER_COUNT = 0;
 
 	/// Print out all register values to serial as hexadecimals (%x) one on each line to allow diagnosing of configuration issues.
-	serial_print_hex(CONTROL_REGISTER_A);
-	serial_print_hex(CONTROL_REGISTER_B);
+	printf("CONTROL_REGISTER_A: %x\n", CONTROL_REGISTER_A);
+	printf("CONTROL_REGISTER_B: %x\n", CONTROL_REGISTER_B);
 }
