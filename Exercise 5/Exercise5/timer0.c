@@ -65,7 +65,7 @@ static void set_waveform_generation_mode(uint8_t mode)
 	SET_BITS(CONTROL_REGISTER_B, TCCR0B_WGM_MODE_OFFSET, (mode >> 2) & TCCR0B_WGM_MODE_MASK);
 }
 
-static void setup_timer0()
+void setup_timer0()
 {
 	/// Reset module.
 	reset_timer0_module();
