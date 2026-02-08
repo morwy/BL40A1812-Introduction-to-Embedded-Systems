@@ -89,3 +89,14 @@ void setup_timer0()
 	printf("CONTROL_REGISTER_A: %x\n", CONTROL_REGISTER_A);
 	printf("CONTROL_REGISTER_B: %x\n", CONTROL_REGISTER_B);
 }
+
+uint32_t get_time()
+{
+	enter_critical();
+	
+	uint32_t time = timer_ticks;
+
+	exit_critical();
+
+	return time;
+}
