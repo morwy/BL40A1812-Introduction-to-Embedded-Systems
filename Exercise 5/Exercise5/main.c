@@ -112,7 +112,8 @@ int main(void)
 			/// If value obtained format it to a buffer string with snprintf and write to LCD: (line 1) "The ADC result", (line 2) the measured value.
 			char buffer[16];
 			snprintf(buffer, sizeof(buffer), "%u", adc_result);
-			write_to_lcd("The ADC result");
+			lcd_clrscr();
+			write_to_lcd("The ADC result\n");
 			write_to_lcd(buffer);
 		}
 
