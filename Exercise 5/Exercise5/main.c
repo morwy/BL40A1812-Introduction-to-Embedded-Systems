@@ -1,6 +1,7 @@
 #include "uart.h"
 #include "timer0.h"
 #include "adc.h"
+#include "lcd.h"
 
 #include <util/delay.h>
 #include <string.h>
