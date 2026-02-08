@@ -78,9 +78,9 @@ static void select_input_channel(uint8_t adc_mux)
 
 static void reset_adc_module(void)
 {
-	latest_adc_value = 0;
-	adc_conv_complete = false;
-	/// WTF goes here
+	ADC_MULTIPLEXER = 0;
+	ADC_CONTROL_STATUS_A = 0;
+	ADC_CONTROL_STATUS_B = 0;
 }
 
 /**
