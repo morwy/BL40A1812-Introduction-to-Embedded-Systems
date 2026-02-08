@@ -53,7 +53,7 @@ ISR(ADC_vect)
  * */
 bool try_reading_adc(uint16_t *output)
 {
-	enter_critical_section();
+	enter_critical();
 
 	bool result = false;
 
@@ -64,7 +64,7 @@ bool try_reading_adc(uint16_t *output)
 		result = true;
 	}
 
-	exit_critical_section();
+	exit_critical();
 
 	return result;
 }
