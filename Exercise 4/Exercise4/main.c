@@ -2,8 +2,20 @@
 #include <string.h>
 #include <stdio.h>
 #include <inttypes.h>
+#include "lcd.h"
 
 #define LCD_MAX_STRING (32)
+
+/// There is not much we can do for now. This function will be improved in future.
+static void handle_error(uint8_t return_code)
+{
+	// Non-zero return code indicates critical fault
+	if (return_code)
+	{
+		while (1)
+			;
+	}
+}
 
 /**
  * Protected write to LCD that checks that provided pointer is a valid
@@ -31,50 +43,63 @@ static void write_to_lcd(const char *string)
 	}
 }
 
-/// There is not much we can do for now. This function will be improved in future.
-static void handle_error(uint8_t return_code)
-{
-	// Non-zero return code indicates critical fault
-	if (return_code)
-	{
-		while (1)
-			;
-	}
-}
-
 static void setup(void)
 {
-	// Initialize serial port for standard library.
-	printf("Initializing serial port.\r\n");
-	uint8_t rc = setup_uart_io();
-	handle_error(rc);
-	printf("Serial port initialized.\r\n");
+    // Initialize serial port for standard library
+    uint8_t rc = setup_uart_io();
+    handle_error(rc);
 
-	// Initialize keypad.
-	printf("Initializing keypad.\r\n");
-	rc = KEYPAD_Init();
-	handle_error(rc);
-	printf("Keypad initialized.\r\n");
+    // Initialize keypad
+    KEYPAD_Init();
+    printf("Keypad initialized.\r\n");
 
-	// Initialize LCD.
-	printf("Initializing LCD.\r\n");
-	rc = lcd_init(LCD_DISP_ON);
-	handle_error(rc);
-	lcd_clrscr();
-	printf("LCD initialized.\r\n");
+    // Initialize LCD and clear display
+    lcd_init(LCD_DISP_ON);
+    printf("LCD initialized.\r\n");
+    lcd_clrscr();
+    printf("LCD cleared.\r\n");
 
-	write_to_lcd("Ready");
+    //Write "Ready" to LCD
+    write_to_lcd("Ready");
 }
 
 int main(void)
 {
 	static char key_str[32];
 	setup();
+
 	uint32_t memory = 0;
+
 	while (1)
 	{
-		/************************************************************************/
-		/*                                                                      */
-		/************************************************************************/
+		printf("Waiting for key press...\r\n");
+		uint8_t key = KEYPAD_GetKey(); // Wait for a key press
+		printf("Key pressed: '%c'\r\n", key);
+
+		uint8_t key_value = key - '0'; // Convert ASCII to integer value
+
+		if (key_value <= 9)
+		{ // If key is a digit
+			uint64_t new_value = ((uint64_t)memory) * 10ULL + key_value;
+			if (new_value <= UINT32_MAX)
+			{ // Check for overflow
+				memory = ((uint32_t)new_value);
+			} else {
+				printf("Overflow detected, skipping.\r\n");
+			}
+		}
+		else if (key == '*')
+		{
+			memory = 0;
+		}
+
+		lcd_clrscr(); // Clear LCD before displaying new info
+		snprintf(key_str, sizeof(key_str), "Key pressed: %c", key);
+		write_to_lcd(key_str);
+
+		write_to_lcd("\n"); // New line on LCD
+
+		snprintf(key_str, sizeof(key_str), "Mem: %" PRIu32 "", memory);
+		write_to_lcd(key_str);
 	}
 }
