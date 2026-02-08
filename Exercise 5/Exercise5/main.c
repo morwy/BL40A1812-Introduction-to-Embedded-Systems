@@ -66,3 +66,37 @@ static void setup(void)
 
 	printf("Done.\r\n");
 }
+
+int main(void)
+{
+	setup();
+
+	uint16_t adc_result = 0;
+	uint32_t previous_time = 0;
+	uint32_t new_time = 0;
+
+	while (1)
+	{
+		/// Try getting the latest ADC result with try_reading_adc interface
+		if (try_reading_adc(&adc_result))
+		{
+			/// If value obtained format it to a buffer string with snprintf and write to LCD: (line 1) "The ADC result", (line 2) the measured value.
+			char buffer[16];
+			snprintf(buffer, sizeof(buffer), "%u", adc_result);
+			write_to_lcd("The ADC result");
+			write_to_lcd(buffer);
+		}
+
+		/// Obtain update counter by reading get_time() interface and right shifting it by 6 bits (equivalent to division by 64). This will change value every 10*64 -> 640 ms.
+		new_time = get_time() >> 6;
+
+		/// Loop in while until the value of update counter changes. On every iteration call sleep_mode() to cause processor to go into energy-conservation mode. Poll the time after this call to update the exit condition once the CPU is woken up by some interrupt.
+		while (new_time == previous_time)
+		{
+			sleep_mode();
+			new_time = get_time() >> 6;
+		}
+
+		previous_time = new_time;
+	}
+}
