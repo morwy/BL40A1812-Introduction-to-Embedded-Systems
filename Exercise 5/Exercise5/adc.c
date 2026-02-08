@@ -13,8 +13,8 @@
 
 /// Datasheet p. 281
 #define ADMUX_MUX_OFFSET (0)
-#define ADMUX_MUX_MASK (0b1111)
-#define ADMUX_MUX_SINGLE_A3 (0b0011)
+#define ADMUX_MUX_MASK (0b11111)
+// #define ADMUX_MUX_SINGLE_A3 ()
 #define ADMUX_REFERENCE_SELECT_OFFSET (6)
 #define ADMUX_REFERENCE_SELECT_MASK (0b11)
 #define ADMUX_REFERENCE_SELECT_AVCC (0b01)
@@ -33,7 +33,7 @@
 #define ADCSRB_TRIGGER_TIMER0_COMPARE_MATCH_A (0b011)
 
 #define ADCSRB_MUX_OFFSET (3)
-#define ADCSRB_MUX_MASK (0b11)
+#define ADCSRB_MUX_MASK (0b1)
 
 static uint16_t latest_adc_value = 0;  ///< to hold the latest ADC conversion result
 static bool adc_conv_complete = false; ///< a flag that indicates ADC conversion is completed
