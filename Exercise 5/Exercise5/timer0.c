@@ -11,20 +11,20 @@
 #define TCCR0A_WGM_MODE_MASK (0b11)
 
 /// Datasheet p. 128 Table 16-8
-#define WGM_MODE_CLEAR_ON_COMPARE_MATCH !!!
+#define WGM_MODE_CLEAR_ON_COMPARE_MATCH (0b0100)
 
 /// Datasheet p. 129
 #define TCCR0B_CLOCK_SELECT_OFFSET (0)
 #define TCCRB0_CLOCL_SELECT_MASK (0b111)
-#define TCCR0B_WGM_MODE_OFFSET !!!
-#define TCCR0B_WGM_MODE_MASK !!!
+#define TCCR0B_WGM_MODE_OFFSET (3)
+#define TCCR0B_WGM_MODE_MASK (0b11)
 
 /// Datasheet p. 130 Table 16-9
-#define CLOCK_SELECT_CLKIO_DIV_1024 !!!
+#define CLOCK_SELECT_CLKIO_DIV_1024 (0b101)
 
 /// Datasheet p. 131
-#define TIMSK_TIFR_TIMER_OVERFLOW_INTERRUPT_OFFSET !!!
-#define TIMSK_TIFR_COMPARE_A_MATCH_INTERRUPT_OFFSET !!!
+#define TIMSK_TIFR_TIMER_OVERFLOW_INTERRUPT_OFFSET (0)
+#define TIMSK_TIFR_COMPARE_A_MATCH_INTERRUPT_OFFSET (1)
 
 /// Human-readable registers
 #define CONTROL_REGISTER_A (TCCR0A)
@@ -86,6 +86,6 @@ static void setup_timer0()
 	TIMER_COUNT = 0;
 
 	/// Print out all register values to serial as hexadecimals (%x) one on each line to allow diagnosing of configuration issues.
-	printf("CONTROL_REGISTER_A: %x\n", CONTROL_REGISTER_A);
-	printf("CONTROL_REGISTER_B: %x\n", CONTROL_REGISTER_B);
+	serial_print_hex(CONTROL_REGISTER_A);
+	serial_print_hex(CONTROL_REGISTER_B);
 }
