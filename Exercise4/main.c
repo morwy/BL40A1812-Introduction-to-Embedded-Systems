@@ -67,7 +67,7 @@ int main(void) {
         uint8_t key_value = key - '0'; // Convert ASCII to integer value
         
         if (key_value <= 9) { // If key is a digit
-            if ((memory * 10 + key_value) <= UINT32_MAX) { // Check for overflow
+            if (memory <= (UINT32_MAX / 10 - key_value)) { // Check for overflow
                 memory = memory * 10 + key_value;
             }
         } else if (key == '*') {
