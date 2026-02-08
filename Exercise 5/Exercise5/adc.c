@@ -3,6 +3,7 @@
 #include <avr/interrupt.h>
 #include <avr/io.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include "bit_ops.h"
 
 /// Human-readable names
@@ -11,28 +12,28 @@
 #define ADC_CONTROL_STATUS_B (ADCSRB)
 
 /// Datasheet p. 281
-#define ADMUX_MUX_OFFSET !!!
-#define ADMUX_MUX_MASK !!!
-#define ADMUX_MUX_SINGLE_A3 !!!
-#define ADMUX_REFERENCE_SELECT_OFFSET !!!
-#define ADMUX_REFERENCE_SELECT_MASK !!!
-#define ADMUX_REFERENCE_SELECT_AVCC !!!
+#define ADMUX_MUX_OFFSET (0)
+#define ADMUX_MUX_MASK (0b1111)
+#define ADMUX_MUX_SINGLE_A3 (0b0011)
+#define ADMUX_REFERENCE_SELECT_OFFSET (6)
+#define ADMUX_REFERENCE_SELECT_MASK (0b11)
+#define ADMUX_REFERENCE_SELECT_AVCC (0b01)
 
 /// Datasheet p. 285
-#define ADCSRA_CLOCK_PRESCALER_OFFSET !!!
-#define ADCSRA_CLOCK_PRESCALER_MASK !!!
-#define ADCSRA_CLOCK_PRESCALER_DIV_32 !!!
-#define ADCSRA_ADC_INTERRUPT_ENABLE_OFFSET !!!
-#define ADCSRA_AUTO_TRIGGER_OFFSET !!!
-#define ADCSRA_ADC_ENABLE_OFFSET !!!
+#define ADCSRA_CLOCK_PRESCALER_OFFSET (0)
+#define ADCSRA_CLOCK_PRESCALER_MASK (0b111)
+#define ADCSRA_CLOCK_PRESCALER_DIV_32 (0b101)
+#define ADCSRA_ADC_INTERRUPT_ENABLE_OFFSET (3)
+#define ADCSRA_AUTO_TRIGGER_OFFSET (5)
+#define ADCSRA_ADC_ENABLE_OFFSET (7)
 
-#define ADCSRB_TRIGGER_OFFSET !!!
-#define ADCSRB_TRIGGER_MASK !!!
+#define ADCSRB_TRIGGER_OFFSET (0)
+#define ADCSRB_TRIGGER_MASK (0b111)
 
-#define ADCSRB_TRIGGER_TIMER0_COMPARE_MATCH_A !!!
+#define ADCSRB_TRIGGER_TIMER0_COMPARE_MATCH_A (0b011)
 
-#define ADCSRB_MUX_OFFSET !!!
-#define ADCSRB_MUX_MASK !!!
+#define ADCSRB_MUX_OFFSET (3)
+#define ADCSRB_MUX_MASK (0b11)
 
 static uint16_t latest_adc_value = 0;  ///< to hold the latest ADC conversion result
 static bool adc_conv_complete = false; ///< a flag that indicates ADC conversion is completed
