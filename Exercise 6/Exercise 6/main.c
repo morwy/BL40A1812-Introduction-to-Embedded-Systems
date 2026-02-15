@@ -10,6 +10,7 @@
 #include <avr/interrupt.h>
 #include <avr/sleep.h>
 #include <stdbool.h>
+#include "bit_ops.h"
 
 note_t test_tune_1[] = {
     { 3, HALF },
@@ -20,7 +21,8 @@ note_t test_tune_1[] = {
     { 300, HALF },
     { 400, HALF },
     { 600, HALF },
-    { 600, HALF }};
+    { 600, HALF }
+};
 
 note_t test_tune_2[] = {
     { C3, QUARTER },
@@ -73,9 +75,12 @@ void setup(void){
 	uint8_t rc = setup_uart_io();
 	handle_error(rc);
 
-    // Set Port C pin 11 as input with default output low.
-	DDRC &= ~(1 << DDC11);	 // Clear bit 11 to set as input
-	PORTC &= ~(1 << PORTC11); // Clear bit 11 to 
+    // Set Port C pin 11 as output with default output low.
+    CLEAR_BIT(DDRC, PB3); // Set A3 as input
+    printf("Pin A3 set to input.\r\n");
+
+    CLEAR_BIT(PORTC, PB3); // Default output low
+    printf("Pin A3 pull-up disabled.\r\n");
 
     // Call setup function of the Timer 0
 	printf("Setting up Timer 0...\r\n");
@@ -114,17 +119,18 @@ int main(void) {
 
         if (current_note < sizeof(test_tune_1)/sizeof(note_t)){
 
-            uint16_t playingNote = test_tune_1[current_note];
-            uint16_t frequenzyToUse = playingNote.frequency_hz;
-            uint16_t noteDuration = playingNote.duration_ms;
+            note_t playingNote = test_tune_1[current_note];
 
-            printf("Playing: %d", playingNote);
+            uint16_t freq = playingNote.frequency_hz;
+            uint16_t dur = playingNote.duration_ms;
 
-            timer1_set_frequency(frequenzyToUse);
+            printf("Playing: %dhz for %dms", freq, dur);
+
+            timer1_set_frequency(freq);
 
             timer1_channel_A_on();
 
-            sleep_ms(noteDuration);
+            sleep_ms(dur);
 
             timer1_channel_A_off();
 

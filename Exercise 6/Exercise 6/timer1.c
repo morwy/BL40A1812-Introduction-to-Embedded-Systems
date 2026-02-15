@@ -62,13 +62,14 @@ void timer1_channel_A_on(void) {
 }
 
 void timer1_set_frequency(uint16_t frequency) {
+    timer1_prescaler_t prescaler = 0;
     if (frequency < 8) {
         prescaler = TIMER1_PRESCALER_64;
     } if (frequency < 64) {
         prescaler = TIMER1_PRESCALER_8;
     } else {
         prescaler = TIMER1_PRESCALER_1;
-    }
+    };
 
     SET_BITS(CONTROL_REGISTER_B, TCCR1B_CLOCK_SELECT_OFFSET, prescaler);
 

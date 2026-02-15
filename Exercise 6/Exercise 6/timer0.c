@@ -90,7 +90,7 @@ void setup_timer0(void) {
     set_waveform_generation_mode(WGM_MODE_CLEAR_ON_COMPARE_MATCH);
     
     // set a prescaler of 1024 for a slow clock (0b00000101), see datasheet p.107-108
-    SET_BITS(CONTROL_REGISTER_B, TCCR0B_CLOCK_SELECT_OFFSET, CLOCK_SELECT_CLKIO_DIV_1024 & TCCRB0_CLOCL_SELECT_MASK);
+    SET_BITS(CONTROL_REGISTER_B, TCCR0B_CLOCK_SELECT_OFFSET, CLOCK_SELECT_CLKIO_DIV_1024 & TCCR0B_CLOCK_SELECT_MASK);
 
     // set the compare match value (OCR0A) to value computed for approximately 10 ms period
     OUTPUT_COMPARE_A = OCRA_PERIOD_10MS; 

@@ -17,4 +17,5 @@ typedef struct note {
     uint16_t frequency_hz;
     uint16_t duration_ms;
 } note_t;
+
 #endif
