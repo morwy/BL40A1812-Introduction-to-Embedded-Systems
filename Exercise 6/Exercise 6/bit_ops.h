@@ -16,4 +16,6 @@
 /// Set bits in provided variable in place. Bit-wise OR between the current value and the mask
 #define SET_BITS(val, bit, mask) (val |= (((__typeof__(val))mask) << bit))
 
+#define CLEAR_BITS(val, bit, mask) (val &= ~(((__typeof__(val))mask) << bit))
+
 #endif
