@@ -115,12 +115,12 @@ int main(void) {
         if (current_note < sizeof(test_tune_1)/sizeof(note_t)){
 
             uint16_t playingNote = test_tune_1[current_note];
-            uint16_t frequenzyToUse = test_tune_1[current_note].frequency_hz;
-            uint16_t noteDuration = test_tune_1[current_note].duration_ms;
+            uint16_t frequenzyToUse = playingNote.frequency_hz;
+            uint16_t noteDuration = playingNote.duration_ms;
 
             printf("Playing: %d", playingNote);
 
-            timer_1_set_frequenzy(frequenzyToUse);
+            timer1_set_frequency(frequenzyToUse);
 
             timer1_channel_A_on();
 
