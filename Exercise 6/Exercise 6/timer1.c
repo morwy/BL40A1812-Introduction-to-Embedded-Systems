@@ -79,7 +79,7 @@ void timer1_set_frequency(uint16_t frequency) {
 }
 
 /// Set default value in all timer registers.
-static void reset_timer0_module(void) {
+static void reset_timer1_module(void) {
     CONTROL_REGISTER_A = 0;
     CONTROL_REGISTER_B = 0;
     TIMER_COUNT = 0;
@@ -89,8 +89,8 @@ static void reset_timer0_module(void) {
     INTERRUPT_FLAGS = 0;
 }
 
-void setup_timer0(void) {
-    reset_timer0_module();
+void setup_timer1(void) {
+    reset_timer1_module();
 
     set_waveform_generation_mode(WGM_MODE_PWM_PHASE_FREQ_CORRECT_OCRA);
     
