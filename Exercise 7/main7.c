@@ -2,6 +2,7 @@
 #define DELAY 100
 #include <avr/sleep.h>
 #include <util/delay.h>
+#include <avr/interrupt.h>
 #include <stdlib.h>
 #include "lcd.h"
 
@@ -26,5 +27,26 @@ int main(void){
     sei();
     lcd_init(LCD_DISP_ON);
     lcd_clrscr();
+
+    while (1) {
+        char count[16];
+        dtostrf(counter, 3, 0, count); // Convert counter to string
+        
+        lcd_clrscr(); // Clear LCD screen
+        lcd_puts(count); // Display counter value on LCD
+        
+        if ((PIND & (1 << PD7)) != 0) { // Check if PD7 is high
+            SMCR |= (1 << SE); // Enable sleep mode
+            sleep_cpu(); // Enter sleep mode
+            SMCR &= ~(1 << SE); // Disable sleep mode after waking up
+        }
+        else {
+            time_from_start = time_from_start + 1; // Increment time from start
+            char time_elapsed[16];
+            dtostrf(time_from_start/(float)1000/DELAY, 3, 2, time_elapsed); // Convert time from start to string
+            lcd_clrscr(); // Clear LCD screen
+            lcd_puts(time_elapsed); // Display time elapsed on LCD
+        }
+    } 
     return 0;
 }
