@@ -32,10 +32,9 @@ int main(void){
         char count[16];
         dtostrf(counter, 3, 0, count); // Convert counter to string
         
-        lcd_clrscr(); // Clear LCD screen
-        lcd_puts(count); // Display counter value on LCD
-        
         if ((PIND & (1 << PD7)) != 0) { // Check if PD7 is high
+            lcd_clrscr(); // Clear LCD screen
+            lcd_puts(count); // Display counter value on LCD
             SMCR |= (1 << SE); // Enable sleep mode
             sleep_cpu(); // Enter sleep mode
             SMCR &= ~(1 << SE); // Disable sleep mode after waking up
