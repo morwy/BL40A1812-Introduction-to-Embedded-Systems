@@ -71,7 +71,7 @@ int main(void)
 
     SPCR |= (1 << SPE) | (1 << MSTR) | (1 << SPR0);
 
-    unsigned char spi_send_data[20] = " ...write what to transfer to slave... \n\r"; //to slave
+    unsigned char spi_send_data[20] = "message to slave \n\r"; //to slave
     unsigned char spi_receive_data[20]; //from slave
 
     while (true) {
@@ -81,15 +81,19 @@ int main(void)
         //to read data from slave
         {
             SPDR = spi_send_data[spi_data_index]; // Use SPI data register (SPDR) to send byte of data
+            
+            _delay_us(5);
             /* wait until the transmission is complete */
             while(!(SPSR & (1 << SPIF))) //see example datasheet p.193, and datasheet at p.198.
             {
                 ;
             }
-            spi_receive_data[spi_data_index] = SPDR; // receive byte from the SPI data register
+            _delay_us(5);
+            spi_receive_data[spi_data_index-1] = SPDR; // receive byte from the SPI data register
         }
         PORTB |= (1 << PB0); // SS HIGH to disable the slave device
         printf(spi_receive_data);
+        _delay_ms(500);
     }
     
 }

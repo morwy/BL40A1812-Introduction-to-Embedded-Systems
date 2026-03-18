@@ -11,8 +11,7 @@
 #include <stdbool.h> //for boolean
 #include <string.h> //for strcpy function
 
-static void
-USART_init(uint16_t ubrr)
+static void USART_init(uint16_t ubrr)
 {
     /* Set baud rate in the USART Baud Rate Registers (UBRR) */
     UBRR0H = (unsigned char) (ubrr >> 8); //see example datasheet p. 176
@@ -26,8 +25,7 @@ USART_init(uint16_t ubrr)
     
 }
 
-static void
-USART_Transmit(unsigned char data, FILE *stream)
+static void USART_Transmit(unsigned char data, FILE *stream)
 {
     /* Wait until the transmit buffer is empty*/
     while(!(UCSR0A & (1 << UDRE0))) //see example datasheet p.177
@@ -39,8 +37,7 @@ USART_Transmit(unsigned char data, FILE *stream)
     UDR0 = data;
 }
 
-static char
-USART_Receive(FILE *stream)
+static char USART_Receive(FILE *stream)
 {
     /* Wait until the transmit buffer is empty*/
     while(!(UCSR0A & (1 << RXC0)))  //see example datasheet p. 180
@@ -69,7 +66,7 @@ int main(void)
     
     SPCR |= (1 << SPE);
     
-    char spi_send_data[20] = "...write what to transfer to master...\n\r"; //to master
+    char spi_send_data[20] = "message to master\n\r"; //to master
     char spi_receive_data[20]; //from master
         
     while (1) 
