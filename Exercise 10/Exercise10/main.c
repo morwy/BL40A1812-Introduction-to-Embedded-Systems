@@ -1,4 +1,6 @@
 #include <avr/io.h>
+#include <stdbool.h>
+#include <stdlib.h>
 #include <stdio.h>
 
 #define FOSC 16000000UL // system clock frequency
@@ -56,4 +58,19 @@ int main(void)
 	stdout = &uart_output;
 	stdin = &uart_input;
 
+	TWBR = 0x03; // TWI bit rate register.
+	TWSR = 0x00; // TWI status register prescaler value set to 1
+	
+	TWCR |= (1 << TWEN); // The TWEN must be set to enable the TWI, datasheet p. 248
+	
+	unsigned char twi_send_data[20] = "master to slave\n"; //Instead of SPI, now is TWI
+	char test_char_array[16]; // 16-bit array, assumes that the int given is 16-bits
+	uint8_t twi_status = 0;
+	
+	while(true)
+	{
+		
+	}
+	
+	return EXIT_SUCCESS;
 }
