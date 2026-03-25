@@ -135,43 +135,7 @@
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="adc.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="adc.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="bit_ops.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="critical.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="critical.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="lcd.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="lcd.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="main.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="mcu.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="timer0.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="timer0.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="uart.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="uart.h">
       <SubType>compile</SubType>
     </Compile>
   </ItemGroup>
