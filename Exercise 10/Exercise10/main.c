@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <util/delay.h>
 
 #define FOSC 16000000UL // system clock frequency
 #define BAUD 9600 // baud rate
@@ -69,7 +70,51 @@ int main(void)
 	
 	while(true)
 	{
+		TWCR = (1 << TWINT) | (1 << TWSTA) | (1 << TWEN);
 		
+		while (!(TWCR & (1 << TWINT)))
+		{;}
+			
+		twi_status = (TWSR & 0xF8);
+		
+		twi_status = (TWSR & 0xF8);
+		itoa(twi_status, test_char_array, 16);
+		printf(test_char_array);
+		printf(" ");
+		
+		TWDR = 0b10101110; //SLA_W --> 7-bit slave address and 1 write bit//p. 247, p. 263
+		// Slave address + write bit '0' as an LSB
+		
+		TWCR = (1 << TWINT) | (1 << TWEN);
+		
+		while (!(TWCR & ( 1<< TWINT)))
+		{;}
+			
+		twi_status = (TWSR & 0xF8);
+		itoa(twi_status, test_char_array, 16);
+		printf(test_char_array);
+		printf(" ");
+		
+		for(int8_t twi_data_index = 0; twi_data_index < sizeof(twi_send_data); twi_data_index++)
+		{
+			// Load data into TWDR
+			TWDR = twi_send_data[twi_data_index];
+			// Clear TWINT bit in the TWCR to start transmission of data
+			TWCR = (1 << TWINT) | (1 << TWEN);
+			
+			while (!(TWCR & ( 1<< TWINT)))
+			{;}
+				
+			twi_status = (TWSR & 0xF8);
+			itoa(twi_status, test_char_array, 16);
+			printf(test_char_array);
+			printf(" ");
+		} //this is end of for command in the step 5b.
+		
+		TWCR = (1 << TWINT) | (1 << TWEN) |(1 << TWSTO);
+		printf("\n");
+		
+		_delay_ms(1000);
 	}
 	
 	return EXIT_SUCCESS;
