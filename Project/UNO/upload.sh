@@ -17,7 +17,7 @@ fi
 for port in $ports; do
     echo "Checking $port."
     signature=$(sudo avrdude -c arduino -p atmega328p -P $port -U signature:r:-:h 2>&1 | grep "device signature" | awk '{print $5}')
-    if [ "$signature" = "0x1e9801" ]; then
+    if [ "$signature" = "0x1e950f" ]; then
         echo "Found Arduino UNO on $port!"
         echo ""
         break
@@ -27,7 +27,7 @@ for port in $ports; do
     fi
 done
 
-if [ "$signature" != "0x1e9801" ]; then
+if [ "$signature" != "0x1e950f" ]; then
     echo "Arduino UNO not found on any port!"
     exit 1
 fi
