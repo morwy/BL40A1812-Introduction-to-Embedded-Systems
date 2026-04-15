@@ -38,7 +38,7 @@ CURRENT_DIR=$(pwd)
 
 echo "Current directory: $CURRENT_DIR"
 
-sudo avrdude -v -c wiring -p atmega2560 -P $port -b 115200 -U flash:w:$CURRENT_DIR/project-2560.hex
+sudo avrdude -v -c wiring -p atmega2560 -P $port -b 115200 -D -U flash:w:$CURRENT_DIR/project-2560.hex
 if [ $? -ne 0 ]; then
     echo "Upload failed!"
     exit 1
