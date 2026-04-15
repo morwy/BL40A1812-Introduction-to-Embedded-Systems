@@ -32,6 +32,9 @@ typedef enum
     OBSTACLE_DETECTION = 6
 } state_t;
 
+uint8_t floor_choice_index = 0;
+int floors_list[] = {5, 3, 3, 1};
+
 /// There is not much we can do for now. This function will be improved in future.
 static void handle_error(uint8_t return_code)
 {
@@ -42,28 +45,14 @@ static void handle_error(uint8_t return_code)
 	}
 }
 
-static int8_t floor_choice(void)
+static int8_t floor_choice(void) //THIS IS FOR SIMULATING THE FLOOR CHOICE. IN REALITY THE CHOICE COMES FROM THE KEYPAD INPUT, WHICH IS NOT IMPLEMENTED YET.
 {
-	for (int8_t i = MIN_FLOOR; i <= MAX_FLOOR; i++)
-	{
-		if (!read_gpio(&floor_buttons[i - MIN_FLOOR]))
-		{
-			return i;
-		}
+	if (floor_choice_index > 3) {
+		return 0;
 	}
-	return MIN_FLOOR - 1;
-}
-
-static void floor_led_on(const int8_t current_floor)
-{
-	printf("Setting floor %d LED ON.\r\n", current_floor);
-	set_gpio(&floor_leds[current_floor - MIN_FLOOR]);
-}
-
-static void floor_led_off(const int8_t current_floor)
-{
-	printf("Setting floor %d LED OFF.\r\n", current_floor);
-	clear_gpio(&floor_leds[current_floor - MIN_FLOOR]);
+	int floor = floors_list[floor_choice_index];
+	floor_choice_index++;
+	return floor;
 }
 
 state_t idle_state_transition_check(const int8_t requested_floor, const int8_t current_floor)
@@ -219,10 +208,12 @@ int main(void)
 		case GOINGUP:
 		case GOINGDOWN:
 			next_state = elevator_state;
+			//printf("Current floor: %d\r\n", current_floor);
 			if (requested_floor == current_floor)
 			{
 				// FLOOR REACHED
 				next_state = DOOR_OPENING;
+				//printf("Floor %d reached\r\n", current_floor);
 			}
 			break;
 		case DOOR_OPENING:
