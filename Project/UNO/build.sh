@@ -6,7 +6,7 @@ echo "Current directory: $CURRENT_DIR"
 
 echo "Building the project."
 
-avr-gcc -mmcu=atmega328p -Wall -Os -o $CURRENT_DIR/project-UNO.elf $CURRENT_DIR/*.c
+avr-gcc -mmcu=atmega328p -Wall -Os -o $CURRENT_DIR/project-UNO.elf $CURRENT_DIR/ProjectUNO/*.c
 
 echo "Build completed. Output file: project-UNO.elf"
 
