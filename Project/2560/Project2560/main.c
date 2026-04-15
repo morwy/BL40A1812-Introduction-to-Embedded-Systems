@@ -14,7 +14,8 @@
 #include "uart.h"
 #include "pin_config.h"
 
-#define DOOR_CLOSE_OPEN_DURATION_MS (3000)
+#define DOOR_OPEN_DURATION_MS (3000)
+#define DOOR_CLOSE_DURATION_MS (2000)
 #define FLOOR_MOVING_SPEED_MS (3000)
 #define FAULT_BLINK_PERIOD_MS (200)
 #define FAULT_BLINK_DURATION_MS (3000)
@@ -41,7 +42,7 @@ static void handle_error(uint8_t return_code)
 	}
 }
 
-static int8_t floor_button_choice(void)
+static int8_t floor_choice(void)
 {
 	for (int8_t i = MIN_FLOOR; i <= MAX_FLOOR; i++)
 	{
@@ -74,8 +75,9 @@ state_t idle_state_transition_check(const int8_t requested_floor, const int8_t c
 	}
 
 	// If invalid input -> go to FAULT;
-	if ((requested_floor > MAX_FLOOR) || (requested_floor < MIN_FLOOR))
+	if ((requested_floor > MAX_FLOOR) || (requested_floor < MIN_FLOOR) || (requested_floor == current_floor))
 	{
+
 		return FAULT;
 	}
 
@@ -94,18 +96,30 @@ static void on_enter(state_t new_state, int8_t *requested_floor, int8_t *current
 	switch (new_state)
 	{
 	case IDLE:
+        // Display "Choose the floor" on LCD screen:
+		// code here
 		break;
 	case GOINGUP:
 		set_gpio(&movement_led); // turn movement LED ON
+        // Display "Current floor: XX" on LCD screen:
+        // code here
 		break;
 	case GOINGDOWN:
 		set_gpio(&movement_led); // turn movement LED ON
+		// Display "Current floor: XX" on LCD screen:
+		// code here
 		break;
 	case DOOR_OPENING:
 		set_gpio(&doors_led);
-		_delay_ms(DOOR_CLOSE_OPEN_DURATION_MS);
+		_delay_ms(DOOR_OPEN_DURATION_MS); // door led is one for 3 seconds
+        // Display "Door open" on LCD screen:
+		// code here
 		break;
 	case DOOR_CLOSING:
+        set_gpio(&doors_led);
+        // Display "Door closing" on LCD screen:
+		// code here
+		_delay_ms(DOOR_CLOSE_DURATION_MS); // door led is one for 2 seconds
 		break;
 	case FAULT:
 		// FAULT RECOVERY
@@ -113,17 +127,15 @@ static void on_enter(state_t new_state, int8_t *requested_floor, int8_t *current
 			*current_floor = MIN_FLOOR;
 		if (*current_floor > MAX_FLOOR)
 			*current_floor = MAX_FLOOR;
-		*requested_floor = *current_floor;
+		*requested_floor = 0; // reset requested floor
 		
-		// Blink movement LED to indicate fault.
-		for (int8_t blink_amount = 0; blink_amount < (FAULT_BLINK_DURATION_MS/FAULT_BLINK_PERIOD_MS); blink_amount++)
-		{
-			set_gpio(&movement_led);
-			_delay_ms(FAULT_BLINK_PERIOD_MS / 2.);
-			clear_gpio(&movement_led);
-			_delay_ms(FAULT_BLINK_PERIOD_MS / 2.);
-		}
+		// Display "Same floor" on LCD screen to indicate fault:
+		// code here
 		break;
+    case OBSTACLE_DETECTION:
+        // Obstacle detected: obstacle led blinks 3 times, LCD displays "Obstacle detected", buzzer plays melody with 5 notes, stops until any button on the keypad is pressed
+        // code here
+        break;
 	}
 }
 
@@ -134,18 +146,18 @@ static void on_loop(state_t current_state, int8_t *requested_floor, int8_t *curr
 	{
 	case IDLE:
 		_delay_ms(10);
-		*requested_floor = floor_button_choice();
+		*requested_floor = floor_choice();
 		break;
 	case GOINGUP:
 		_delay_ms(FLOOR_MOVING_SPEED_MS);
-		floor_led_off(*current_floor);
 		(*current_floor)++;
-		floor_led_on(*current_floor);
+		// Display new "Current floor: XX" on LCD screen:
+		// code here
 		break;
 	case GOINGDOWN:
-		floor_led_off(*current_floor);
 		(*current_floor)--;
-		floor_led_on(*current_floor);
+		// Display new "Current floor: XX" on LCD screen:
+		// code here
 		_delay_ms(FLOOR_MOVING_SPEED_MS);
 		break;
 	}
@@ -161,10 +173,12 @@ static void on_exit(state_t old_state, int8_t *requested_floor, int8_t *current_
 		clear_gpio(&movement_led);
 		break;
 	case DOOR_CLOSING:
-		_delay_ms(DOOR_CLOSE_OPEN_DURATION_MS);
 		clear_gpio(&doors_led);
 		break;
-	}
+	case DOOR_OPENING:
+        clear_gpio(&doors_led);
+        break;
+    }
 }
 
 int main(void)
@@ -190,10 +204,9 @@ int main(void)
 
     /* elevator variables, elevator has 5 floors */
 	volatile state_t elevator_state = IDLE;
-	int8_t requested_floor = 1;
+	int8_t requested_floor = 0;
 	int8_t current_floor = 1;
-	set_gpio(&doors_led);
-	floor_led_on(current_floor);
+
 	while (1)
 	{
 		state_t next_state = FAULT;
@@ -213,7 +226,7 @@ int main(void)
 			}
 			break;
 		case DOOR_OPENING:
-			next_state = IDLE;
+			next_state = DOOR_CLOSING;
 			break;
 		case DOOR_CLOSING:
 			if (requested_floor < current_floor)
@@ -226,6 +239,7 @@ int main(void)
 			}
 			else
 			{
+                requested_floor = 0; //reset requested floor before going IDLE
 				next_state = IDLE;
 			}
 			break;

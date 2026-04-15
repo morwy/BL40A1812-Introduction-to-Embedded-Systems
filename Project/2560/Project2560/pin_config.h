@@ -69,7 +69,7 @@
 
 /////////////////////////////////
 
-#define MIN_FLOOR (0)
+#define MIN_FLOOR (1)
 #define MAX_FLOOR (99)
 
 void init_avr_gpio_pins(void);
