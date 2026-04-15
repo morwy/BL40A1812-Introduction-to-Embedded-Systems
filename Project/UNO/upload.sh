@@ -34,7 +34,11 @@ fi
 
 echo "Uploading the project to the Arduino UNO on $port."
 
-sudo avrdude -v -c arduino -p atmega328p -P $port -b 115200 -U flash:w:./project-UNO.hex
+CURRENT_DIR=$(pwd)
+
+echo "Current directory: $CURRENT_DIR"
+
+sudo avrdude -v -c arduino -p atmega328p -P $port -b 115200 -U flash:w:$CURRENT_DIR/project-UNO.hex
 if [ $? -ne 0 ]; then
     echo "Upload failed!"
     exit 1
