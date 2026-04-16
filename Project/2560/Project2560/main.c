@@ -162,8 +162,6 @@ static void on_exit(state_t old_state, int8_t *requested_floor, int8_t *current_
 		clear_gpio(&movement_led);
 		break;
 	case DOOR_CLOSING:
-		clear_gpio(&doors_led);
-		break;
 	case DOOR_OPENING:
         clear_gpio(&doors_led);
         break;
@@ -178,23 +176,12 @@ int main(void)
 	// Configuring GPIO mappings
 	init_avr_gpio_pins();
 
-	// debugging purposes (can be removed lated)
-	DDRC |= (1 << PC6);
-	PORTC |= (1 << PC6);
-
 	// Initializing movement and door LEDs.
 	clear_gpio(&movement_led);
 	set_as_output(&movement_led);
 	clear_gpio(&doors_led);
 	set_as_output(&doors_led);
 
-	//testing led pin mappings (can be removed later)
-	set_gpio(&doors_led);
-	_delay_ms(2000);
-	clear_gpio(&doors_led);
-	set_gpio(&movement_led);
-	_delay_ms(2000);
-	clear_gpio(&movement_led);
 
     //char username[32] = {0};
 
