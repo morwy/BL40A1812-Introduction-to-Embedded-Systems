@@ -174,6 +174,15 @@ int main(void)
 {
     uint8_t rc = setup_uart_io();
     handle_error(rc);
+
+	//testing led pin mappings
+	set_gpio(&doors_led);
+	_delay_ms(2000);
+	clear_gpio(&doors_led);
+	set_gpio(&movement_led);
+	_delay_ms(2000);
+	clear_gpio(&movement_led);
+
     //char username[32] = {0};
 
     // print out using the UART. This can be accessed via terminals such as PuTTY.
