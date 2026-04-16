@@ -175,7 +175,14 @@ int main(void)
     uint8_t rc = setup_uart_io();
     handle_error(rc);
 
+	// Configuring GPIO mappings
 	init_avr_gpio_pins();
+
+	// Initializing movement and door LEDs.
+	clear_gpio(&movement_led);
+	set_as_output(&movement_led);
+	clear_gpio(&doors_led);
+	set_as_output(&doors_led);
 
 	//testing led pin mappings
 	set_gpio(&doors_led);
