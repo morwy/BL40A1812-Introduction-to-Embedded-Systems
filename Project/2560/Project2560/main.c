@@ -178,6 +178,10 @@ int main(void)
 	// Configuring GPIO mappings
 	init_avr_gpio_pins();
 
+	// debugging purposes
+	DDRC |= (1 << PC6);
+	PORTC |= (1 << PC6);
+
 	// Initializing movement and door LEDs.
 	clear_gpio(&movement_led);
 	set_as_output(&movement_led);
