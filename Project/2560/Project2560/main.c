@@ -175,6 +175,8 @@ int main(void)
     uint8_t rc = setup_uart_io();
     handle_error(rc);
 
+	init_avr_gpio_pins();
+
 	//testing led pin mappings
 	set_gpio(&doors_led);
 	_delay_ms(2000);
