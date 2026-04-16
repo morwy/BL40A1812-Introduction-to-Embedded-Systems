@@ -1,14 +1,18 @@
 #!/bin/bash
 
-echo "Building the project..."
+CURRENT_DIR=$(pwd)
 
-avr-gcc -mmcu=atmega328p -Wall -Os -o ./project-UNO.elf ./*.c
+echo "Current directory: $CURRENT_DIR"
+
+echo "Building the project."
+
+avr-gcc -mmcu=atmega328p -Wall -Os -o $CURRENT_DIR/project-UNO.elf $CURRENT_DIR/ProjectUNO/*.c
 
 echo "Build completed. Output file: project-UNO.elf"
 
-echo "Converting the ELF file to HEX format..."
+echo "Converting the ELF file to HEX format."
 
-avr-objcopy -j .text -j .data -O ihex ./project-UNO.elf ./project-UNO.hex
+avr-objcopy -j .text -j .data -O ihex $CURRENT_DIR/project-UNO.elf $CURRENT_DIR/project-UNO.hex
 
 echo "HEX file generated: project-UNO.hex"
 
