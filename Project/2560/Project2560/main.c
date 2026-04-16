@@ -32,8 +32,8 @@ typedef enum
     OBSTACLE_DETECTION = 6
 } state_t;
 
-uint8_t floor_choice_index = 0;
-int floors_list[] = {5, 3, 3, 1};
+uint8_t floor_choice_index = 0; // for testing
+int floors_list[] = {5, 3, 3, 1}; // for testing
 
 /// There is not much we can do for now. This function will be improved in future.
 static void handle_error(uint8_t return_code)
@@ -45,7 +45,7 @@ static void handle_error(uint8_t return_code)
 	}
 }
 
-static int8_t floor_choice(void) //THIS IS FOR SIMULATING THE FLOOR CHOICE. IN REALITY THE CHOICE COMES FROM THE KEYPAD INPUT, WHICH IS NOT IMPLEMENTED YET.
+static int8_t floor_choice(void) //testing purposes before implementing the keypad
 {
 	if (floor_choice_index > 3) {
 		return 0;
@@ -178,7 +178,7 @@ int main(void)
 	// Configuring GPIO mappings
 	init_avr_gpio_pins();
 
-	// debugging purposes
+	// debugging purposes (can be removed lated)
 	DDRC |= (1 << PC6);
 	PORTC |= (1 << PC6);
 
@@ -188,7 +188,7 @@ int main(void)
 	clear_gpio(&doors_led);
 	set_as_output(&doors_led);
 
-	//testing led pin mappings
+	//testing led pin mappings (can be removed later)
 	set_gpio(&doors_led);
 	_delay_ms(2000);
 	clear_gpio(&doors_led);
