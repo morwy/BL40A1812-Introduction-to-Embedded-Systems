@@ -174,10 +174,11 @@ int main(void)
 {
     uint8_t rc = setup_uart_io();
     handle_error(rc);
-    char username[32] = {0};
+    //char username[32] = {0};
 
     // print out using the UART. This can be accessed via terminals such as PuTTY.
-    printf("Hello World! What is your name (max 30 characters)?\r\n");
+    /*
+	printf("Hello World! What is your name (max 30 characters)?\r\n");
 
     // Read username safely
     fgets(username, sizeof(username), stdin);
@@ -190,6 +191,7 @@ int main(void)
 			break;
 		}
     }
+	*/
 
     /* elevator variables, elevator has 5 floors */
 	volatile state_t elevator_state = IDLE;
