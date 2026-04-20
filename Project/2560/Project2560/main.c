@@ -21,8 +21,7 @@
 #define FAULT_BLINK_PERIOD_MS (200)
 #define FAULT_BLINK_DURATION_MS (3000)
 
-// Must match UNO slave address.
-#define SLAVE_ADDRESS_7BIT (0x57)
+#define SLAVE_ADDRESS 0b1010111 // 87 as decimal. This address must be the same as master address.
 
 // Simple 1-byte command protocol to UNO
 #define UNO_CMD_OBSTACLE_START (0x01) // start blinking + buzzer/melody
@@ -36,7 +35,7 @@ static void twi_master_init(void)
 	TWCR |= (1 << TWEN);
 }
 
-static uint8_t twi_master_write_to_slave(uint8_t slave_address_7bit, uint8_t data_byte)
+static uint8_t twi_master_write_to_slave(uint8_t data_byte)
 {
 	// START -> SLA+W -> DATA -> STOP
 	uint8_t twi_status = 0;
@@ -52,7 +51,7 @@ static uint8_t twi_master_write_to_slave(uint8_t slave_address_7bit, uint8_t dat
 	printf(" "); */
 
 	// 2) SLA+W
-	TWDR = ((slave_address_7bit << 1) | 0);
+	TWDR = 0b10101110;
 	TWCR = (1 << TWINT) | (1 << TWEN);
 	while (!(TWCR & (1 << TWINT)))
 	{;}
@@ -77,7 +76,7 @@ static uint8_t twi_master_write_to_slave(uint8_t slave_address_7bit, uint8_t dat
 	return 0;
 }
 
-static uint8_t twi_master_read_from_slave(uint8_t slave_address_7bit, uint8_t *out_byte)
+static uint8_t twi_master_read_from_slave(uint8_t *out_byte)
 {
 	// START -> SLA+R -> read 1 byte (NACK) -> STOP
 	uint8_t twi_status = 0;
@@ -93,7 +92,7 @@ static uint8_t twi_master_read_from_slave(uint8_t slave_address_7bit, uint8_t *o
 	printf(" "); */
 
 	// 2) SLA+R
-	TWDR = ((slave_address_7bit << 1) | 1);
+	TWDR = 0b10101111;
 	TWCR = (1 << TWINT) | (1 << TWEN);
 	while (!(TWCR & (1 << TWINT)))
 	{;}
@@ -240,7 +239,7 @@ static void on_enter(state_t new_state, int8_t *requested_floor, int8_t *current
 		
 		// Tell UNO to start blinking + buzzer/melody
 		printf("Sending start command to UNO\r\n");
-		(void)twi_master_write_to_slave(SLAVE_ADDRESS_7BIT, UNO_CMD_OBSTACLE_START);
+		(void)twi_master_write_to_slave(UNO_CMD_OBSTACLE_START);
 		printf("Start command sent to UNO\r\n");
         break;
 	}
@@ -272,7 +271,7 @@ static void on_loop(state_t current_state, int8_t *requested_floor, int8_t *curr
 		// Poll UNO obstacle flag during the door-open period.
 		uint8_t flag = 0;
 		printf("Polling UNO obstacle flag\r\n");
-		(void)twi_master_read_from_slave(SLAVE_ADDRESS_7BIT, &flag);
+		(void)twi_master_read_from_slave(&flag);
 		printf("UNO obstacle flag: %d\r\n", flag);
 		obstacle_flag = flag;
 
@@ -313,7 +312,7 @@ static void on_exit(state_t old_state, int8_t *requested_floor, int8_t *current_
 	case OBSTACLE_DETECTION:
 		// Tell UNO to stop the buzzer/melody when leaving obstacle detection
 		printf("Sending stop command to UNO\r\n");
-		(void)twi_master_write_to_slave(SLAVE_ADDRESS_7BIT, UNO_CMD_OBSTACLE_STOP);
+		(void)twi_master_write_to_slave(UNO_CMD_OBSTACLE_STOP);
 		printf("Stop command sent to UNO\r\n");
 		break;
     }

@@ -16,8 +16,7 @@
 #include "board_config.h"
 #include "pin_config.h"
 
-// 7-bit slave address. Must match the MEGA master's address.
-#define SLAVE_ADDRESS_7BIT (0x57)
+#define SLAVE_ADDRESS 0b1010111 // 87 as decimal. This address must be the same as master address.
 
 // Simple 1-byte command protocol from MEGA
 #define UNO_CMD_OBSTACLE_START (0x01) // start blinking + buzzer/melody
@@ -41,7 +40,7 @@ int main(void)
 	// Configure TWI as slave
 	TWCR |= (1 << TWEA) | (1 << TWEN);
 	TWCR &= ~((1 << TWSTA) | (1 << TWSTO));
-	TWAR = (SLAVE_ADDRESS_7BIT << 1); // address 
+	TWAR = 0b10101110; // address 
 
 	CLEAR_BIT(LED_13_PORT, LED_13_PIN);    // Default output value LOW
     SET_BIT(LED_13_DIRECTION, LED_13_PIN); // Set pin to OUTPUT
@@ -50,6 +49,11 @@ int main(void)
 	uint8_t twi_status = 0;
 	uint8_t buzzer_enabled = 0;
 	uint8_t blink_enabled = 0;
+
+	// Testing LED 1s ON then off
+	SET_BIT(LED_13_PORT, LED_13_PIN);
+	_delay_ms(1000);
+	CLEAR_BIT(LED_13_PORT, LED_13_PIN);
 
     while (1) 
     {
@@ -130,11 +134,6 @@ int main(void)
 
 		// TODO (UNO LEDs): if blink_enabled==1, blink obstacle LED 3 times, then blink_enabled=0
 		// Testing
-		// LED 1 s then off
-		SET_BIT(LED_13_PORT, LED_13_PIN);
-		_delay_ms(1000);
-		CLEAR_BIT(LED_13_PORT, LED_13_PIN);
-
 		if (blink_enabled == 1)
 		{
 			SET_BIT(LED_13_PORT, LED_13_PIN);
