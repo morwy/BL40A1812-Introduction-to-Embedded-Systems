@@ -130,6 +130,11 @@ int main(void)
 
 		// TODO (UNO LEDs): if blink_enabled==1, blink obstacle LED 3 times, then blink_enabled=0
 		// Testing
+		// LED 1 s then off
+		SET_BIT(LED_13_PORT, LED_13_PIN);
+		_delay_ms(1000);
+		CLEAR_BIT(LED_13_PORT, LED_13_PIN);
+
 		if (blink_enabled == 1)
 		{
 			SET_BIT(LED_13_PORT, LED_13_PIN);
