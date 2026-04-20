@@ -12,7 +12,9 @@
 #include <stdio.h>
 
 #include "uart.h"
-
+#include "bit_ops.h"
+#include "board_config.h"
+#include "pin_config.h"
 
 // 7-bit slave address. Must match the MEGA master's address.
 #define SLAVE_ADDRESS_7BIT (0x57)
@@ -40,6 +42,9 @@ int main(void)
 	TWCR |= (1 << TWEA) | (1 << TWEN);
 	TWCR &= ~((1 << TWSTA) | (1 << TWSTO));
 	TWAR = (SLAVE_ADDRESS_7BIT << 1); // address 
+
+	CLEAR_BIT(LED_13_PORT, LED_13_PIN);    // Default output value LOW
+    SET_BIT(LED_13_DIRECTION, LED_13_PIN); // Set pin to OUTPUT
 
 	uint8_t obstacle_flag = 0; // 0 = no obstacle, 1 = obstacle detected
 	uint8_t twi_status = 0;
@@ -105,6 +110,16 @@ int main(void)
 		
 
 		// TODO (UNO LEDs): if blink_enabled==1, blink obstacle LED 3 times, then blink_enabled=0
+		// Testing
+		if (blink_enabled == 1)
+		{
+			SET_BIT(LED_13_PORT, LED_13_PIN);
+		}
+		else if (blink_enabled == 0)
+		{
+			CLEAR_BIT(LED_13_PORT, LED_13_PIN);
+		}
+
 		// TODO (UNO buzzer): if buzzer_enabled==1, play melody (>=5 notes) here; stop when buzzer_enabled==0
 
 		
