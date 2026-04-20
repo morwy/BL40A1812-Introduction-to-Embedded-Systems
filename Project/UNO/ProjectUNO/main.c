@@ -62,9 +62,10 @@ int main(void)
 		// Clear TWINT and keep ACK enabled so we remain addressable
 		TWCR |= (1 << TWINT) | (1 << TWEA) | (1 << TWEN);
 
-		// Two directions supported:
-		// - MEGA reads obstacle flag (SLA+R): UNO transmits 1 byte
-		// - MEGA sends commands (SLA+W): UNO receives 1 byte command
+		while (!(TWCR & (1 << TWINT)))
+		{;}
+
+		twi_status = (TWSR & 0xF8);
 
 		// Slave transmitter mode (master reads)
 		if ((twi_status == 0xA8) || (twi_status == 0xB8))

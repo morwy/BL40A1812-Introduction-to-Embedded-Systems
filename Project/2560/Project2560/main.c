@@ -39,7 +39,6 @@ static void twi_master_init(void)
 static uint8_t twi_master_write_to_slave(uint8_t slave_address_7bit, uint8_t data_byte)
 {
 	// START -> SLA+W -> DATA -> STOP
-	// Returns 0 on success, non-zero on failure.
 	uint8_t twi_status = 0;
 	//char test_char_array[16]; // 16-bit array, assumes that the int given is 16-bits
 
@@ -51,11 +50,6 @@ static uint8_t twi_master_write_to_slave(uint8_t slave_address_7bit, uint8_t dat
 	/* itoa(twi_status, test_char_array, 16);
 	printf(test_char_array);
 	printf(" "); */
-	if ((twi_status != 0x08) && (twi_status != 0x10))
-	{
-		TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTO);
-		return 1;
-	}
 
 	// 2) SLA+W
 	TWDR = ((slave_address_7bit << 1) | 0);
@@ -66,11 +60,6 @@ static uint8_t twi_master_write_to_slave(uint8_t slave_address_7bit, uint8_t dat
 	/* itoa(twi_status, test_char_array, 16);
 	printf(test_char_array);
 	printf(" "); */
-	if (twi_status != 0x18) // SLA+W transmitted, ACK received
-	{
-		TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTO);
-		return 2;
-	}
 
 	// 3) DATA
 	TWDR = data_byte;
@@ -81,11 +70,6 @@ static uint8_t twi_master_write_to_slave(uint8_t slave_address_7bit, uint8_t dat
 	/* itoa(twi_status, test_char_array, 16);
 	printf(test_char_array);
 	printf(" "); */
-	if (twi_status != 0x28) // data transmitted, ACK received
-	{
-		TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTO);
-		return 3;
-	}
 
 	// 4) STOP
 	TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTO);
@@ -96,7 +80,6 @@ static uint8_t twi_master_write_to_slave(uint8_t slave_address_7bit, uint8_t dat
 static uint8_t twi_master_read_from_slave(uint8_t slave_address_7bit, uint8_t *out_byte)
 {
 	// START -> SLA+R -> read 1 byte (NACK) -> STOP
-	// Returns 0 on success, non-zero on failure.
 	uint8_t twi_status = 0;
 	//char test_char_array[16]; // 16-bit array, assumes that the int given is 16-bits
 
@@ -108,11 +91,6 @@ static uint8_t twi_master_read_from_slave(uint8_t slave_address_7bit, uint8_t *o
 	/* itoa(twi_status, test_char_array, 16);
 	printf(test_char_array);
 	printf(" "); */
-	if ((twi_status != 0x08) && (twi_status != 0x10))
-	{
-		TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTO);
-		return 1;
-	}
 
 	// 2) SLA+R
 	TWDR = ((slave_address_7bit << 1) | 1);
@@ -123,11 +101,6 @@ static uint8_t twi_master_read_from_slave(uint8_t slave_address_7bit, uint8_t *o
 	/* itoa(twi_status, test_char_array, 16);
 	printf(test_char_array);
 	printf(" "); */
-	if (twi_status != 0x40)
-	{
-		TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTO);
-		return 2;
-	}
 
 	// 3) Read one byte, then NACK (single-byte read)
 	TWCR = (1 << TWINT) | (1 << TWEN);
@@ -137,11 +110,6 @@ static uint8_t twi_master_read_from_slave(uint8_t slave_address_7bit, uint8_t *o
 	/* itoa(twi_status, test_char_array, 16);
 	printf(test_char_array);
 	printf(" "); */
-	if (twi_status != 0x58)
-	{
-		TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTO);
-		return 3;
-	}
 
 	*out_byte = TWDR;
 
@@ -312,7 +280,7 @@ static void on_loop(state_t current_state, int8_t *requested_floor, int8_t *curr
 		_delay_ms(300);
 		door_open_elapsed_ms += 300;
 
-		
+
 		// Testing, set obstacle flag to 1
 		if (door_open_elapsed_ms >= 900)
 		{
