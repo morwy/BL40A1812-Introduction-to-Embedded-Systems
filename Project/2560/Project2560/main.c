@@ -6,6 +6,7 @@
  */ 
 
 #include "mcu.h"
+#include <avr/io.h>
 #include <stdint.h>
 #include "avr_gpio.h"
 #include <util/delay.h>
@@ -19,6 +20,144 @@
 #define FLOOR_MOVING_SPEED_MS (3000)
 #define FAULT_BLINK_PERIOD_MS (200)
 #define FAULT_BLINK_DURATION_MS (3000)
+
+// Must match UNO slave address.
+#define SLAVE_ADDRESS_7BIT (0x57)
+
+// Simple 1-byte command protocol to UNO
+#define UNO_CMD_OBSTACLE_START (0x01) // start blinking + buzzer/melody
+#define UNO_CMD_OBSTACLE_STOP  (0x02) // stop buzzer/melody 
+
+static void twi_master_init(void)
+{
+	// Fixed bit rate and prescaler=1
+	TWBR = 0x03;
+	TWSR = 0x00;
+	TWCR |= (1 << TWEN);
+}
+
+static uint8_t twi_master_write_to_slave(uint8_t slave_address_7bit, uint8_t data_byte)
+{
+	// START -> SLA+W -> DATA -> STOP
+	// Returns 0 on success, non-zero on failure.
+	uint8_t twi_status = 0;
+	//char test_char_array[16]; // 16-bit array, assumes that the int given is 16-bits
+
+	// 1) START
+	TWCR = (1 << TWINT) | (1 << TWSTA) | (1 << TWEN);
+	while (!(TWCR & (1 << TWINT)))
+	{;}
+	twi_status = (TWSR & 0xF8);
+	/* itoa(twi_status, test_char_array, 16);
+	printf(test_char_array);
+	printf(" "); */
+	if ((twi_status != 0x08) && (twi_status != 0x10))
+	{
+		TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTO);
+		return 1;
+	}
+
+	// 2) SLA+W
+	TWDR = ((slave_address_7bit << 1) | 0);
+	TWCR = (1 << TWINT) | (1 << TWEN);
+	while (!(TWCR & (1 << TWINT)))
+	{;}
+	twi_status = (TWSR & 0xF8);
+	/* itoa(twi_status, test_char_array, 16);
+	printf(test_char_array);
+	printf(" "); */
+	if (twi_status != 0x18) // SLA+W transmitted, ACK received
+	{
+		TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTO);
+		return 2;
+	}
+
+	// 3) DATA
+	TWDR = data_byte;
+	TWCR = (1 << TWINT) | (1 << TWEN);
+	while (!(TWCR & (1 << TWINT)))
+	{;}
+	twi_status = (TWSR & 0xF8);
+	/* itoa(twi_status, test_char_array, 16);
+	printf(test_char_array);
+	printf(" "); */
+	if (twi_status != 0x28) // data transmitted, ACK received
+	{
+		TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTO);
+		return 3;
+	}
+
+	// 4) STOP
+	TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTO);
+	/* printf("\n"); */
+	return 0;
+}
+
+static uint8_t twi_master_read_from_slave(uint8_t slave_address_7bit, uint8_t *out_byte)
+{
+	// START -> SLA+R -> read 1 byte (NACK) -> STOP
+	// Returns 0 on success, non-zero on failure.
+	uint8_t twi_status = 0;
+	//char test_char_array[16]; // 16-bit array, assumes that the int given is 16-bits
+
+	// 1) START
+	TWCR = (1 << TWINT) | (1 << TWSTA) | (1 << TWEN);
+	while (!(TWCR & (1 << TWINT)))
+	{;}
+	twi_status = (TWSR & 0xF8);
+	/* itoa(twi_status, test_char_array, 16);
+	printf(test_char_array);
+	printf(" "); */
+	if ((twi_status != 0x08) && (twi_status != 0x10))
+	{
+		TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTO);
+		return 1;
+	}
+
+	// 2) SLA+R
+	TWDR = ((slave_address_7bit << 1) | 1);
+	TWCR = (1 << TWINT) | (1 << TWEN);
+	while (!(TWCR & (1 << TWINT)))
+	{;}
+	twi_status = (TWSR & 0xF8);
+	/* itoa(twi_status, test_char_array, 16);
+	printf(test_char_array);
+	printf(" "); */
+	if (twi_status != 0x40)
+	{
+		TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTO);
+		return 2;
+	}
+
+	// 3) Read one byte, then NACK (single-byte read)
+	TWCR = (1 << TWINT) | (1 << TWEN);
+	while (!(TWCR & (1 << TWINT)))
+	{;}
+	twi_status = (TWSR & 0xF8);
+	/* itoa(twi_status, test_char_array, 16);
+	printf(test_char_array);
+	printf(" "); */
+	if (twi_status != 0x58)
+	{
+		TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTO);
+		return 3;
+	}
+
+	*out_byte = TWDR;
+
+	// 4) STOP
+	TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTO);
+	/* printf("\n"); */
+
+	return 0;
+}
+
+static uint8_t is_keypad_any_pressed(void)
+{
+	// TODO (keypad): return 1 when any keypad button is pressed.
+	// This is used to exit OBSTACLE_DETECTION.
+	return 0;
+}
 
 
 typedef enum
@@ -34,6 +173,9 @@ typedef enum
 
 uint8_t floor_choice_index = 0; // for testing
 int floors_list[] = {5, 3, 3, 1}; // for testing
+
+static uint16_t door_open_elapsed_ms = 0;
+static uint8_t obstacle_flag = 0;
 
 /// There is not much we can do for now. This function will be improved in future.
 static void handle_error(uint8_t return_code)
@@ -100,7 +242,9 @@ static void on_enter(state_t new_state, int8_t *requested_floor, int8_t *current
 		break;
 	case DOOR_OPENING:
 		set_gpio(&doors_led);
-		_delay_ms(DOOR_OPEN_DURATION_MS); // door led is one for 3 seconds
+		// Door LED is on for 3 seconds, but we time-slice in on_loop
+		// so we can poll the UNO obstacle flag 10 times during the open period.
+		door_open_elapsed_ms = 0;
         // Display "Door open" on LCD screen:
 		// code here
 		break;
@@ -122,8 +266,14 @@ static void on_enter(state_t new_state, int8_t *requested_floor, int8_t *current
 		// code here
 		break;
     case OBSTACLE_DETECTION:
-        // Obstacle detected: obstacle led blinks 3 times, LCD displays "Obstacle detected", buzzer plays melody with 5 notes, stops until any button on the keypad is pressed
+		// Obstacle detected: obstacle led blinks 3 times, LCD displays "Obstacle detected", buzzer plays melody with 5 notes, stops until any button on the keypad is pressed
         // code here
+		// - TODO (LCD): display "Obstacle detected"
+		
+		// Tell UNO to start blinking + buzzer/melody
+		printf("Sending start command to UNO\r\n");
+		(void)twi_master_write_to_slave(SLAVE_ADDRESS_7BIT, UNO_CMD_OBSTACLE_START);
+		printf("Start command sent to UNO\r\n");
         break;
 	}
 }
@@ -149,6 +299,33 @@ static void on_loop(state_t current_state, int8_t *requested_floor, int8_t *curr
 		// code here
 		_delay_ms(FLOOR_MOVING_SPEED_MS);
 		break;
+	case DOOR_OPENING:
+	{
+		// Poll UNO obstacle flag during the door-open period.
+		uint8_t flag = 0;
+		printf("Polling UNO obstacle flag\r\n");
+		(void)twi_master_read_from_slave(SLAVE_ADDRESS_7BIT, &flag);
+		printf("UNO obstacle flag: %d\r\n", flag);
+		obstacle_flag = flag;
+
+		// Time slice: 300ms tick
+		_delay_ms(300);
+		door_open_elapsed_ms += 300;
+
+		
+		// Testing, set obstacle flag to 1
+		if (door_open_elapsed_ms >= 900)
+		{
+			obstacle_flag = 1;
+		}
+		
+		break;
+	}
+	case OBSTACLE_DETECTION:
+		// Wait here until user acknowledges via keypad.
+		
+		_delay_ms(25);
+		break;
 	}
 }
 
@@ -165,6 +342,12 @@ static void on_exit(state_t old_state, int8_t *requested_floor, int8_t *current_
 	case DOOR_OPENING:
         clear_gpio(&doors_led);
         break;
+	case OBSTACLE_DETECTION:
+		// Tell UNO to stop the buzzer/melody when leaving obstacle detection
+		printf("Sending stop command to UNO\r\n");
+		(void)twi_master_write_to_slave(SLAVE_ADDRESS_7BIT, UNO_CMD_OBSTACLE_STOP);
+		printf("Stop command sent to UNO\r\n");
+		break;
     }
 }
 
@@ -182,25 +365,8 @@ int main(void)
 	clear_gpio(&doors_led);
 	set_as_output(&doors_led);
 
-
-    //char username[32] = {0};
-
-    // print out using the UART. This can be accessed via terminals such as PuTTY.
-    /*
-	printf("Hello World! What is your name (max 30 characters)?\r\n");
-
-    // Read username safely
-    fgets(username, sizeof(username), stdin);
-
-    for (size_t i = 0; i < sizeof(username); i++)
-    {
-		if (username[i] == 10) // if it is an LF
-		{
-			username[i] = 0; // finished the string
-			break;
-		}
-    }
-	*/
+	// Initialize I2C/TWI master 
+	twi_master_init();
 
     /* elevator variables, elevator has 5 floors */
 	volatile state_t elevator_state = IDLE;
@@ -228,7 +394,18 @@ int main(void)
 			}
 			break;
 		case DOOR_OPENING:
-			next_state = DOOR_CLOSING;
+			// Door is open; poll the UNO obstacle flag.
+			// If obstacle is detected at any time during this open period, enter OBSTACLE_DETECTION.
+			// Otherwise, after DOOR_OPEN_DURATION_MS, proceed to DOOR_CLOSING.
+			next_state = DOOR_OPENING;
+			if (obstacle_flag)
+			{
+				next_state = OBSTACLE_DETECTION;
+			}
+			else if (door_open_elapsed_ms >= DOOR_OPEN_DURATION_MS)
+			{
+				next_state = DOOR_CLOSING;
+			}
 			break;
 		case DOOR_CLOSING:
 			if (requested_floor < current_floor)
@@ -250,10 +427,19 @@ int main(void)
 			next_state = IDLE;
 			break;
         case OBSTACLE_DETECTION:
-            // Obstacle detected: obstacle led blinks 3 times, LCD displays "Obstacle detected", buzzer plays melody with 5 notes, stops until any button on the keypad is pressed
-            //
+			// Obstacle detected: obstacle led blinks 3 times, LCD displays "Obstacle detected", buzzer plays melody with 5 notes, stops until any button on the keypad is pressed
+            // code here
+            // Stay here until any keypad button is pressed, then continue to DOOR_CLOSING.
+			next_state = OBSTACLE_DETECTION;
 
-            next_state = DOOR_CLOSING;
+			if (is_keypad_any_pressed())
+			{
+				next_state = DOOR_CLOSING;
+			}
+
+			// Testing, keypad pressed
+			next_state = DOOR_CLOSING;
+
             break;
 		}
 		printf("elevator_state: %d "
