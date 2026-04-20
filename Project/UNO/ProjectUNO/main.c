@@ -62,10 +62,10 @@ int main(void)
 		// Clear TWINT and keep ACK enabled so we remain addressable
 		TWCR |= (1 << TWINT) | (1 << TWEA) | (1 << TWEN);
 
-		while (!(TWCR & (1 << TWINT)))
+		/* while (!(TWCR & (1 << TWINT)))
 		{;}
 
-		twi_status = (TWSR & 0xF8);
+		twi_status = (TWSR & 0xF8); */
 
 		// Slave transmitter mode (master reads)
 		if ((twi_status == 0xA8) || (twi_status == 0xB8))
@@ -88,6 +88,24 @@ int main(void)
 		else if ((twi_status == 0x80) || (twi_status == 0x90))
 		{
 			// Data received, ACK returned
+			uint8_t cmd = TWDR;
+			if (cmd == UNO_CMD_OBSTACLE_START)
+			{
+				// Buzzer sound on and blink LED
+				blink_enabled = 1;
+				buzzer_enabled = 1;
+			}
+			else if (cmd == UNO_CMD_OBSTACLE_STOP)
+			{
+				// Stop buzzer sound
+				buzzer_enabled = 0;
+				// for testing
+				blink_enabled = 0;
+			}
+		}
+		else if ((twi_status == 0x88) || (twi_status == 0x98))
+		{
+			// Data received, NACK returned
 			uint8_t cmd = TWDR;
 			if (cmd == UNO_CMD_OBSTACLE_START)
 			{

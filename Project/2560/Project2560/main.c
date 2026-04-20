@@ -102,7 +102,7 @@ static uint8_t twi_master_read_from_slave(uint8_t slave_address_7bit, uint8_t *o
 	printf(test_char_array);
 	printf(" "); */
 
-	// 3) Read one byte, then NACK (single-byte read)
+	// 3) Read one byte
 	TWCR = (1 << TWINT) | (1 << TWEN);
 	while (!(TWCR & (1 << TWINT)))
 	{;}
