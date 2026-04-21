@@ -18,7 +18,7 @@
 
 #define SLAVE_ADDRESS 0b1010111 // 87 as decimal. This address must be the same as master address.
 
-// Simple 1-byte command protocol from MEGA
+// Start and stop commands
 #define UNO_CMD_OBSTACLE_START (0x01) // start blinking + buzzer/melody
 #define UNO_CMD_OBSTACLE_STOP  (0x02) // stop buzzer/melody
 
@@ -40,7 +40,7 @@ int main(void)
 	// Configure TWI as slave
 	TWCR |= (1 << TWEA) | (1 << TWEN);
 	TWCR &= ~((1 << TWSTA) | (1 << TWSTO));
-	TWAR = 0b10101110; // address 
+	TWAR = (SLAVE_ADDRESS << 1); // address 
 
 	CLEAR_BIT(LED_13_PORT, LED_13_PIN);    // Default output value LOW
     SET_BIT(LED_13_DIRECTION, LED_13_PIN); // Set pin to OUTPUT
@@ -63,10 +63,10 @@ int main(void)
 
 		twi_status = (TWSR & 0xF8);
 
-		// Clear TWINT and keep ACK enabled so we remain addressable
+		/* // Clear TWINT and keep ACK enabled so we remain addressable
 		TWCR |= (1 << TWINT) | (1 << TWEA) | (1 << TWEN);
 
-		/* while (!(TWCR & (1 << TWINT)))
+		while (!(TWCR & (1 << TWINT)))
 		{;}
 
 		twi_status = (TWSR & 0xF8); */
@@ -88,6 +88,7 @@ int main(void)
 		else if ((twi_status == 0x60) || (twi_status == 0x68))
 		{
 			// Own SLA+W received. Next state will be data receive.
+			TWCR |= (1 << TWINT) | (1 << TWEA) | (1 << TWEN);
 		}
 		else if ((twi_status == 0x80) || (twi_status == 0x90))
 		{
@@ -106,24 +107,8 @@ int main(void)
 				// for testing
 				blink_enabled = 0;
 			}
-		}
-		else if ((twi_status == 0x88) || (twi_status == 0x98))
-		{
-			// Data received, NACK returned
-			uint8_t cmd = TWDR;
-			if (cmd == UNO_CMD_OBSTACLE_START)
-			{
-				// Buzzer sound on and blink LED
-				blink_enabled = 1;
-				buzzer_enabled = 1;
-			}
-			else if (cmd == UNO_CMD_OBSTACLE_STOP)
-			{
-				// Stop buzzer sound
-				buzzer_enabled = 0;
-				// for testing
-				blink_enabled = 0;
-			}
+
+			TWCR |= (1 << TWINT) | (1 << TWEA) | (1 << TWEN);
 		}
 		else if ((twi_status == 0xC0) || (twi_status == 0xC8) || (twi_status == 0xA0))
 		{
@@ -133,7 +118,7 @@ int main(void)
 		
 
 		// TODO (UNO LEDs): if blink_enabled==1, blink obstacle LED 3 times, then blink_enabled=0
-		// Testing
+		// Testing (no blinking)
 		if (blink_enabled == 1)
 		{
 			SET_BIT(LED_13_PORT, LED_13_PIN);

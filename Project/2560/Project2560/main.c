@@ -23,7 +23,7 @@
 
 #define SLAVE_ADDRESS 0b1010111 // 87 as decimal. This address must be the same as master address.
 
-// Simple 1-byte command protocol to UNO
+// Start and stop commands
 #define UNO_CMD_OBSTACLE_START (0x01) // start blinking + buzzer/melody
 #define UNO_CMD_OBSTACLE_STOP  (0x02) // stop buzzer/melody 
 
@@ -35,30 +35,30 @@ static void twi_master_init(void)
 	TWCR |= (1 << TWEN);
 }
 
-static uint8_t twi_master_write_to_slave(uint8_t data_byte)
+static void twi_master_write_to_slave(uint8_t data_byte)
 {
 	// START -> SLA+W -> DATA -> STOP
 	uint8_t twi_status = 0;
-	//char test_char_array[16]; // 16-bit array, assumes that the int given is 16-bits
+	char test_char_array[16]; // 16-bit array, assumes that the int given is 16-bits
 
 	// 1) START
 	TWCR = (1 << TWINT) | (1 << TWSTA) | (1 << TWEN);
 	while (!(TWCR & (1 << TWINT)))
 	{;}
 	twi_status = (TWSR & 0xF8);
-	/* itoa(twi_status, test_char_array, 16);
+	itoa(twi_status, test_char_array, 16);
 	printf(test_char_array);
-	printf(" "); */
+	printf(" ");
 
 	// 2) SLA+W
-	TWDR = 0b10101110;
+	TWDR = 0b10101110; // address + 0
 	TWCR = (1 << TWINT) | (1 << TWEN);
 	while (!(TWCR & (1 << TWINT)))
 	{;}
 	twi_status = (TWSR & 0xF8);
-	/* itoa(twi_status, test_char_array, 16);
+	itoa(twi_status, test_char_array, 16);
 	printf(test_char_array);
-	printf(" "); */
+	printf(" ");
 
 	// 3) DATA
 	TWDR = data_byte;
@@ -66,65 +66,66 @@ static uint8_t twi_master_write_to_slave(uint8_t data_byte)
 	while (!(TWCR & (1 << TWINT)))
 	{;}
 	twi_status = (TWSR & 0xF8);
-	/* itoa(twi_status, test_char_array, 16);
+	itoa(twi_status, test_char_array, 16);
 	printf(test_char_array);
-	printf(" "); */
+	printf(" ");
 
 	// 4) STOP
 	TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTO);
-	/* printf("\n"); */
-	return 0;
+	printf("\n");
+	return;
 }
 
-static uint8_t twi_master_read_from_slave(uint8_t *out_byte)
+static uint8_t twi_master_read_from_slave(void)
 {
 	// START -> SLA+R -> read 1 byte (NACK) -> STOP
 	uint8_t twi_status = 0;
-	//char test_char_array[16]; // 16-bit array, assumes that the int given is 16-bits
+	uint8_t data = 0;
+	char test_char_array[16]; // 16-bit array, assumes that the int given is 16-bits
 
 	// 1) START
 	TWCR = (1 << TWINT) | (1 << TWSTA) | (1 << TWEN);
 	while (!(TWCR & (1 << TWINT)))
 	{;}
 	twi_status = (TWSR & 0xF8);
-	/* itoa(twi_status, test_char_array, 16);
+	itoa(twi_status, test_char_array, 16);
 	printf(test_char_array);
-	printf(" "); */
+	printf(" ");
 
 	// 2) SLA+R
-	TWDR = 0b10101111;
+	TWDR = 0b10101111; // address + 1
 	TWCR = (1 << TWINT) | (1 << TWEN);
 	while (!(TWCR & (1 << TWINT)))
 	{;}
 	twi_status = (TWSR & 0xF8);
-	/* itoa(twi_status, test_char_array, 16);
+	itoa(twi_status, test_char_array, 16);
 	printf(test_char_array);
-	printf(" "); */
+	printf(" ");
 
 	// 3) Read one byte
 	TWCR = (1 << TWINT) | (1 << TWEN);
 	while (!(TWCR & (1 << TWINT)))
 	{;}
 	twi_status = (TWSR & 0xF8);
-	/* itoa(twi_status, test_char_array, 16);
+	itoa(twi_status, test_char_array, 16);
 	printf(test_char_array);
-	printf(" "); */
+	printf(" ");
 
-	*out_byte = TWDR;
+	data = TWDR;
 
 	// 4) STOP
 	TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTO);
-	/* printf("\n"); */
+	printf("\n");
 
-	return 0;
+	return data;
 }
 
-static uint8_t is_keypad_any_pressed(void)
+/* static uint8_t is_keypad_any_pressed(void)
 {
 	// TODO (keypad): return 1 when any keypad button is pressed.
 	// This is used to exit OBSTACLE_DETECTION.
 	return 0;
-}
+} */
 
 
 typedef enum
@@ -239,7 +240,7 @@ static void on_enter(state_t new_state, int8_t *requested_floor, int8_t *current
 		
 		// Tell UNO to start blinking + buzzer/melody
 		printf("Sending start command to UNO\r\n");
-		(void)twi_master_write_to_slave(UNO_CMD_OBSTACLE_START);
+		twi_master_write_to_slave(UNO_CMD_OBSTACLE_START);
 		printf("Start command sent to UNO\r\n");
         break;
 	}
@@ -269,11 +270,9 @@ static void on_loop(state_t current_state, int8_t *requested_floor, int8_t *curr
 	case DOOR_OPENING:
 	{
 		// Poll UNO obstacle flag during the door-open period.
-		uint8_t flag = 0;
 		printf("Polling UNO obstacle flag\r\n");
-		(void)twi_master_read_from_slave(&flag);
-		printf("UNO obstacle flag: %d\r\n", flag);
-		obstacle_flag = flag;
+		obstacle_flag = twi_master_read_from_slave();
+		printf("UNO obstacle flag: %d\r\n", obstacle_flag);
 
 		// Time slice: 300ms tick
 		_delay_ms(300);
@@ -314,6 +313,10 @@ static void on_exit(state_t old_state, int8_t *requested_floor, int8_t *current_
 		printf("Sending stop command to UNO\r\n");
 		(void)twi_master_write_to_slave(UNO_CMD_OBSTACLE_STOP);
 		printf("Stop command sent to UNO\r\n");
+
+		// Reset obstacle flag
+		obstacle_flag = 0;
+
 		break;
     }
 }
@@ -361,11 +364,10 @@ int main(void)
 			}
 			break;
 		case DOOR_OPENING:
-			// Door is open; poll the UNO obstacle flag.
 			// If obstacle is detected at any time during this open period, enter OBSTACLE_DETECTION.
 			// Otherwise, after DOOR_OPEN_DURATION_MS, proceed to DOOR_CLOSING.
 			next_state = DOOR_OPENING;
-			if (obstacle_flag)
+			if (obstacle_flag == 1)
 			{
 				next_state = OBSTACLE_DETECTION;
 			}
@@ -399,12 +401,13 @@ int main(void)
             // Stay here until any keypad button is pressed, then continue to DOOR_CLOSING.
 			next_state = OBSTACLE_DETECTION;
 
-			if (is_keypad_any_pressed())
+
+			/* if (is_keypad_any_pressed())
 			{
 				next_state = DOOR_CLOSING;
-			}
+			} */
 
-			// Testing, keypad pressed
+			// Testing, keypad "pressed", close door
 			next_state = DOOR_CLOSING;
 
             break;
