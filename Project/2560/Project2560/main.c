@@ -84,6 +84,7 @@ static uint8_t twi_master_read_from_slave(void)
 	char test_char_array[16]; // 16-bit array, assumes that the int given is 16-bits
 
 	// 1) START
+	printf("START\r\n");
 	TWCR = (1 << TWINT) | (1 << TWSTA) | (1 << TWEN);
 	while (!(TWCR & (1 << TWINT)))
 	{;}
@@ -93,6 +94,7 @@ static uint8_t twi_master_read_from_slave(void)
 	printf(" ");
 
 	// 2) SLA+R
+	printf("SLA+R\r\n");
 	TWDR = 0b10101111; // address + 1
 	TWCR = (1 << TWINT) | (1 << TWEN);
 	while (!(TWCR & (1 << TWINT)))
@@ -103,6 +105,7 @@ static uint8_t twi_master_read_from_slave(void)
 	printf(" ");
 
 	// 3) Read one byte
+	printf("Read\r\n");
 	TWCR = (1 << TWINT) | (1 << TWEN);
 	while (!(TWCR & (1 << TWINT)))
 	{;}
@@ -114,6 +117,7 @@ static uint8_t twi_master_read_from_slave(void)
 	data = TWDR;
 
 	// 4) STOP
+	printf("STOP\r\n");
 	TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTO);
 	printf("\n");
 

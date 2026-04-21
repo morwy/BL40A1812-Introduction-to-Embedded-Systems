@@ -60,6 +60,7 @@ int main(void)
 
     while (1) 
     {
+		printf("hello\r\n");
 		// Wait until TWI interrupt flag is set
 		while (!(TWCR & (1 << TWINT)))
 		{;}
@@ -119,7 +120,7 @@ int main(void)
 		else if ((twi_status == 0xC0) || (twi_status == 0xC8) || (twi_status == 0xA0))
 		{
 			// Transmission ended (NACK / last byte / STOP). Clear interrupt flag
-			TWCR |= (1 << TWINT);
+			TWCR |= (1 << TWINT) | (1 << TWEA) | (1 << TWEN);
 		}
 		else
 		{
