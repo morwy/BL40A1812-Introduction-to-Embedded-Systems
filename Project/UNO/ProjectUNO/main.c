@@ -55,6 +55,8 @@ int main(void)
 	_delay_ms(1000);
 	CLEAR_BIT(LED_13_PORT, LED_13_PIN);
 
+	char test_char_array[16]; // 16-bit array, assumes that the int given is 16-bits
+
     while (1) 
     {
 		// Wait until TWI interrupt flag is set
@@ -62,6 +64,9 @@ int main(void)
 		{;}
 
 		twi_status = (TWSR & 0xF8);
+		itoa(twi_status, test_char_array, 16);
+		printf(test_char_array);
+		printf(" ");
 
 		/* // Clear TWINT and keep ACK enabled so we remain addressable
 		TWCR |= (1 << TWINT) | (1 << TWEA) | (1 << TWEN);
