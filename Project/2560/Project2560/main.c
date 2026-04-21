@@ -51,7 +51,7 @@ static void twi_master_write_to_slave(uint8_t data_byte)
 	printf(" ");
 
 	// 2) SLA+W
-	TWDR = (SLAVE_ADDRESS << 1) | 0; // address + 0
+	TWDR = 0b10101110; // address + 0
 	TWCR = (1 << TWINT) | (1 << TWEN);
 	while (!(TWCR & (1 << TWINT)))
 	{;}
@@ -95,7 +95,7 @@ static uint8_t twi_master_read_from_slave(void)
 
 	// 2) SLA+R
 	printf("SLA+R\r\n");
-	TWDR = (SLAVE_ADDRESS << 1) | 1; // address + 1
+	TWDR = 0b10101111; // address + 1
 	TWCR = (1 << TWINT) | (1 << TWEN);
 	while (!(TWCR & (1 << TWINT)))
 	{;}

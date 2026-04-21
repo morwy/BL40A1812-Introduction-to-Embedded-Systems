@@ -41,7 +41,7 @@ int main(void)
 	// Configure TWI as slave
 	TWCR |= (1 << TWEA) | (1 << TWEN);
 	TWCR &= ~((1 << TWSTA) | (1 << TWSTO));
-	TWAR = (SLAVE_ADDRESS << 1); // address 
+	TWAR = 0b10101110; // address 
 
 	CLEAR_BIT(LED_13_PORT, LED_13_PIN);    // Default output value LOW
     SET_BIT(LED_13_DIRECTION, LED_13_PIN); // Set pin to OUTPUT
