@@ -32,7 +32,7 @@ static void twi_master_init(void)
 	// Fixed bit rate and prescaler=1
 	TWBR = 0x03;
 	TWSR = 0x00;
-	TWCR |= (1 << TWEN);
+	TWCR = (1 << TWEN);
 }
 
 static void twi_master_write_to_slave(uint8_t data_byte)
@@ -51,7 +51,7 @@ static void twi_master_write_to_slave(uint8_t data_byte)
 	printf(" ");
 
 	// 2) SLA+W
-	TWDR = 0b10101110; // address + 0
+	TWDR = (SLAVE_ADDRESS << 1) | 0; // address + 0
 	TWCR = (1 << TWINT) | (1 << TWEN);
 	while (!(TWCR & (1 << TWINT)))
 	{;}
@@ -95,7 +95,7 @@ static uint8_t twi_master_read_from_slave(void)
 
 	// 2) SLA+R
 	printf("SLA+R\r\n");
-	TWDR = 0b10101111; // address + 1
+	TWDR = (SLAVE_ADDRESS << 1) | 1; // address + 1
 	TWCR = (1 << TWINT) | (1 << TWEN);
 	while (!(TWCR & (1 << TWINT)))
 	{;}

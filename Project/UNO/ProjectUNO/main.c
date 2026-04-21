@@ -60,7 +60,7 @@ int main(void)
 
     while (1) 
     {
-		printf("hello\r\n");
+		//printf("hello\r\n");
 		// Wait until TWI interrupt flag is set
 		while (!(TWCR & (1 << TWINT)))
 		{;}
@@ -73,10 +73,14 @@ int main(void)
 		/* // Clear TWINT and keep ACK enabled so we remain addressable
 		TWCR |= (1 << TWINT) | (1 << TWEA) | (1 << TWEN);
 
+		printf("hello2\r\n");
 		while (!(TWCR & (1 << TWINT)))
 		{;}
 
-		twi_status = (TWSR & 0xF8); */
+		twi_status = (TWSR & 0xF8);
+		itoa(twi_status, test_char_array, 16);
+		printf(test_char_array);
+		printf(" "); */
 
 		// Slave transmitter mode (master reads)
 		if ((twi_status == 0xA8) || (twi_status == 0xB8))
@@ -89,13 +93,13 @@ int main(void)
 			// - obstacle_flag = 1; // obstacle detected
 			TWDR = obstacle_flag;
 			// Clear TWINT to transmit the obstacle flag
-			TWCR |= (1 << TWINT) | (1 << TWEA) | (1 << TWEN);
+			TWCR = (1 << TWINT) | (1 << TWEA) | (1 << TWEN);
 		}
 		// Slave receiver mode (master writes command)
 		else if ((twi_status == 0x60) || (twi_status == 0x68))
 		{
 			// Own SLA+W received. Next state will be data receive.
-			TWCR |= (1 << TWINT) | (1 << TWEA) | (1 << TWEN);
+			TWCR = (1 << TWINT) | (1 << TWEA) | (1 << TWEN);
 		}
 		else if ((twi_status == 0x80) || (twi_status == 0x90))
 		{
@@ -115,16 +119,16 @@ int main(void)
 				blink_enabled = 0;
 			}
 
-			TWCR |= (1 << TWINT) | (1 << TWEA) | (1 << TWEN);
+			TWCR = (1 << TWINT) | (1 << TWEA) | (1 << TWEN);
 		}
 		else if ((twi_status == 0xC0) || (twi_status == 0xC8) || (twi_status == 0xA0))
 		{
 			// Transmission ended (NACK / last byte / STOP). Clear interrupt flag
-			TWCR |= (1 << TWINT) | (1 << TWEA) | (1 << TWEN);
+			TWCR = (1 << TWINT) | (1 << TWEA) | (1 << TWEN);
 		}
 		else
 		{
-			TWCR |= (1 << TWINT) | (1 << TWEA) | (1 << TWEN);
+			TWCR = (1 << TWINT) | (1 << TWEA) | (1 << TWEN);
 		}
 		
 
