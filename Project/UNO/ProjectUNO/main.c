@@ -61,7 +61,7 @@ int main(void)
 
     while (1) 
     {
-		//printf("hello\r\n");
+		printf("hello\r\n");
 		// Wait until TWI interrupt flag is set
 		while (!(TWCR & (1 << TWINT)))
 		{;}
