@@ -53,7 +53,7 @@ int main(void)
 
 	// Testing LED 1s ON then off
 	SET_BIT(LED_13_PORT, LED_13_PIN);
-	_delay_ms(1000);
+	_delay_ms(10000);
 	CLEAR_BIT(LED_13_PORT, LED_13_PIN);
 
 	char test_char_array[16]; // 16-bit array, assumes that the int given is 16-bits
