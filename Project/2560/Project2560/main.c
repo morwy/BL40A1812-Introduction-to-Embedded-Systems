@@ -32,7 +32,7 @@ static void twi_master_init(void)
 	// Fixed bit rate and prescaler=1
 	TWBR = 0x03;
 	TWSR = 0x00;
-	TWCR = (1 << TWEN);
+	TWCR |= (1 << TWEN);
 }
 
 static void twi_master_write_to_slave(uint8_t data_byte)
@@ -275,7 +275,10 @@ static void on_loop(state_t current_state, int8_t *requested_floor, int8_t *curr
 	{
 		// Poll UNO obstacle flag during the door-open period.
 		printf("Polling UNO obstacle flag\r\n");
-		obstacle_flag = twi_master_read_from_slave();
+		// Read not work
+		//obstacle_flag = twi_master_read_from_slave();
+		// Test write
+		twi_master_write_to_slave(UNO_CMD_OBSTACLE_START);
 		printf("UNO obstacle flag: %d\r\n", obstacle_flag);
 
 		// Time slice: 300ms tick
@@ -315,7 +318,7 @@ static void on_exit(state_t old_state, int8_t *requested_floor, int8_t *current_
 	case OBSTACLE_DETECTION:
 		// Tell UNO to stop the buzzer/melody when leaving obstacle detection
 		printf("Sending stop command to UNO\r\n");
-		(void)twi_master_write_to_slave(UNO_CMD_OBSTACLE_STOP);
+		twi_master_write_to_slave(UNO_CMD_OBSTACLE_STOP);
 		printf("Stop command sent to UNO\r\n");
 
 		// Reset obstacle flag
