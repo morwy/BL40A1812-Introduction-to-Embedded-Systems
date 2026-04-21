@@ -120,6 +120,10 @@ int main(void)
 			// Transmission ended (NACK / last byte / STOP). Clear interrupt flag
 			TWCR |= (1 << TWINT);
 		}
+		else
+		{
+			TWCR |= (1 << TWINT) | (1 << TWEA) | (1 << TWEN);
+		}
 		
 
 		// TODO (UNO LEDs): if blink_enabled==1, blink obstacle LED 3 times, then blink_enabled=0
