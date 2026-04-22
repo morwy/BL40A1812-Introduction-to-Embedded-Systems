@@ -13,6 +13,8 @@
 
 #include "uart.h"
 #include "pin_config.h"
+#include "keypad.h"
+#include "lcd.h"
 
 #define DOOR_OPEN_DURATION_MS (3000)
 #define DOOR_CLOSE_DURATION_MS (2000)
@@ -35,6 +37,10 @@ typedef enum
 uint8_t floor_choice_index = 0; // for testing
 int floors_list[] = {5, 3, 3, 1}; // for testing
 
+// Keypad input variables
+static uint8_t input_digits[2];
+static uint8_t input_index = 0;
+
 /// There is not much we can do for now. This function will be improved in future.
 static void handle_error(uint8_t return_code)
 {
@@ -45,26 +51,47 @@ static void handle_error(uint8_t return_code)
 	}
 }
 
-static int8_t floor_choice(void) //testing purposes before implementing the keypad
+static int8_t floor_choice(void)
 {
-	if (floor_choice_index > 3) {
-		return 0;
+	uint8_t key = KEYPAD_GetKey();
+	if (key >= '0' && key <= '9') {
+		input_digits[input_index] = key - '0';
+		input_index++;
+		if (input_index == 2) {
+			int floor = input_digits[0] * 10 + input_digits[1];
+			input_index = 0; // reset for next input
+			if (floor >= MIN_FLOOR && floor <= MAX_FLOOR) {
+				return floor;
+			} else {
+				// invalid, reset
+				return -1;
+			}
+		}
+	} else if (key == '#') {
+		if (input_index == 1) {
+			int floor = input_digits[0];
+			input_index = 0;
+			return floor;
+		} else if (input_index == 2) {
+			int floor = input_digits[0] * 10 + input_digits[1];
+			input_index = 0;
+			return floor;
+		}
+		// if no digits, ignore
 	}
-	int floor = floors_list[floor_choice_index];
-	floor_choice_index++;
-	return floor;
+	return -1; // not ready or invalid
 }
 
 state_t idle_state_transition_check(const int8_t requested_floor, const int8_t current_floor)
 {
 	// Keep state when no buttons are pressed
-	if (requested_floor == (MIN_FLOOR - 1))
+	if (requested_floor < MIN_FLOOR)
 	{
 		return IDLE;
 	}
 
 	// If invalid input -> go to FAULT;
-	if ((requested_floor > MAX_FLOOR) || (requested_floor < MIN_FLOOR) || (requested_floor == current_floor))
+	if ((requested_floor > MAX_FLOOR) || (requested_floor == current_floor))
 	{
 
 		return FAULT;
@@ -86,28 +113,36 @@ static void on_enter(state_t new_state, int8_t *requested_floor, int8_t *current
 	{
 	case IDLE:
         // Display "Choose the floor" on LCD screen:
-		// code here
+		lcd_clrscr();
+		lcd_puts("Choose the floor");
 		break;
 	case GOINGUP:
 		set_gpio(&movement_led); // turn movement LED ON
         // Display "Current floor: XX" on LCD screen:
-        // code here
+		lcd_clrscr();
+		char buf[20];
+		sprintf(buf, "Current floor: %d", *current_floor);
+		lcd_puts(buf);
 		break;
 	case GOINGDOWN:
 		set_gpio(&movement_led); // turn movement LED ON
 		// Display "Current floor: XX" on LCD screen:
-		// code here
+		lcd_clrscr();
+		sprintf(buf, "Current floor: %d", *current_floor);
+		lcd_puts(buf);
 		break;
 	case DOOR_OPENING:
 		set_gpio(&doors_led);
 		_delay_ms(DOOR_OPEN_DURATION_MS); // door led is one for 3 seconds
         // Display "Door open" on LCD screen:
-		// code here
+		lcd_clrscr();
+		lcd_puts("Door open");
 		break;
 	case DOOR_CLOSING:
         set_gpio(&doors_led);
         // Display "Door closing" on LCD screen:
-		// code here
+		lcd_clrscr();
+		lcd_puts("Door closing");
 		_delay_ms(DOOR_CLOSE_DURATION_MS); // door led is one for 2 seconds
 		break;
 	case FAULT:
@@ -116,15 +151,28 @@ static void on_enter(state_t new_state, int8_t *requested_floor, int8_t *current
 			*current_floor = MIN_FLOOR;
 		if (*current_floor > MAX_FLOOR)
 			*current_floor = MAX_FLOOR;
-		*requested_floor = 0; // reset requested floor
+		*requested_floor = -1; // reset requested floor
 		
 		// Display "Same floor" on LCD screen to indicate fault:
-		// code here
+		lcd_clrscr();
+		lcd_puts("Same floor");
 		break;
     case OBSTACLE_DETECTION:
         // Obstacle detected: obstacle led blinks 3 times, LCD displays "Obstacle detected", buzzer plays melody with 5 notes, stops until any button on the keypad is pressed
-        // code here
-        break;
+		lcd_clrscr();
+		lcd_puts("Obstacle detected");
+		
+		// TODO: Blink obstacle LED 3 times
+		// TODO: Play buzzer melody (5 notes)
+		
+		// Wait for any keypad press to stop
+		while (1) {
+			uint8_t key = KEYPAD_GetKey();
+			if (key != 0) {
+				break;
+			}
+		}
+    	break;
 	}
 }
 
@@ -135,18 +183,26 @@ static void on_loop(state_t current_state, int8_t *requested_floor, int8_t *curr
 	{
 	case IDLE:
 		_delay_ms(10);
-		*requested_floor = floor_choice();
+		{
+			int8_t floor = floor_choice();
+			if (floor >= 0) *requested_floor = floor;
+		}
 		break;
 	case GOINGUP:
 		_delay_ms(FLOOR_MOVING_SPEED_MS);
 		(*current_floor)++;
 		// Display new "Current floor: XX" on LCD screen:
-		// code here
+		lcd_clrscr();
+		char buf[20];
+		sprintf(buf, "Current floor: %d", *current_floor);
+		lcd_puts(buf);
 		break;
 	case GOINGDOWN:
 		(*current_floor)--;
 		// Display new "Current floor: XX" on LCD screen:
-		// code here
+		lcd_clrscr();
+		sprintf(buf, "Current floor: %d", *current_floor);
+		lcd_puts(buf);
 		_delay_ms(FLOOR_MOVING_SPEED_MS);
 		break;
 	}
@@ -176,6 +232,10 @@ int main(void)
 	// Configuring GPIO mappings
 	init_avr_gpio_pins();
 
+	// Initialize keypad and LCD
+	KEYPAD_Init();
+	lcd_init(LCD_DISP_ON);
+
 	// Initializing movement and door LEDs.
 	clear_gpio(&movement_led);
 	set_as_output(&movement_led);
@@ -204,7 +264,7 @@ int main(void)
 
     /* elevator variables, elevator has 5 floors */
 	volatile state_t elevator_state = IDLE;
-	int8_t requested_floor = 0;
+	int8_t requested_floor = -1;
 	int8_t current_floor = 1;
 
 	while (1)

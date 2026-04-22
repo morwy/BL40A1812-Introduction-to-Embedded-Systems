@@ -69,7 +69,8 @@
 
 /////////////////////////////////
 
-#define MIN_FLOOR (1)
+// Changed as in the project description it must be able to use floor 0
+#define MIN_FLOOR (0)
 #define MAX_FLOOR (99)
 
 void init_avr_gpio_pins(void);
