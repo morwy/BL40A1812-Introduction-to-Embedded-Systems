@@ -75,16 +75,28 @@ static void lcd_show_text(const char *text)
 
 static int8_t floor_choice(void)
 {
-	uint8_t key = KEYPAD_GetKey();
+	const uint8_t key = KEYPAD_GetKey();
+	printf("%s(): \"%c\" key was entered\r\n", __FUNCTION__, key);
+
 	if (key >= '0' && key <= '9')
 	{
 		input_digits[input_index] = key - '0';
 		input_index++;
 
-		if (input_index == 2)
+		char buf[MAX_TEXT_LENGTH];
+
+		if (input_index == 1)
+		{
+			sprintf(buf, "Select floor:   \r\n%d", input_digits[0]);
+			lcd_show_text(buf);
+		}
+		else if (input_index == 2)
 		{
 			int floor = input_digits[0] * 10 + input_digits[1];
 			input_index = 0; // reset for next input
+
+			sprintf(buf, "Select floor:   \r\n%d%d", input_digits[0], input_digits[1]);
+			lcd_show_text(buf);
 
 			if (floor >= MIN_FLOOR && floor <= MAX_FLOOR)
 			{
@@ -148,7 +160,7 @@ static void on_enter(state_t new_state, int8_t *requested_floor, int8_t *current
 	{
 	case IDLE:
 	{
-		lcd_show_text("Select floor:  ");
+		lcd_show_text("Select floor:   ");
 		break;
 	}
 	case GOING_UP:
@@ -240,10 +252,6 @@ static void on_loop(state_t current_state, int8_t *requested_floor, int8_t *curr
 		if (floor >= 0)
 		{
 			*requested_floor = floor;
-
-			char buf[MAX_TEXT_LENGTH];
-			sprintf(buf, "Select floor:  \r\n%d", *requested_floor);
-			lcd_show_text(buf);
 		}
 		break;
 	}
