@@ -2,8 +2,8 @@
  * Mega_UART.c
  * Source : https://appelsiini.net/2011/simple-usart-with-avr-libc/
  *          https://www.nongnu.org/avr-libc/user-manual/group__avr__stdio.html
- *          https://ww1.microchip.com/downloads/en/devicedoc/atmel-2549-8-bit-avr-microcontroller-atmega640-1280-1281-2560-2561_datasheet.pdf 
- */ 
+ *          https://ww1.microchip.com/downloads/en/devicedoc/atmel-2549-8-bit-avr-microcontroller-atmega640-1280-1281-2560-2561_datasheet.pdf
+ */
 
 #include "mcu.h"
 #include <stdint.h>
@@ -22,7 +22,6 @@
 #define FAULT_BLINK_PERIOD_MS (200)
 #define FAULT_BLINK_DURATION_MS (3000)
 
-
 typedef enum
 {
 	IDLE = 0,
@@ -31,10 +30,10 @@ typedef enum
 	DOOR_OPENING = 3,
 	DOOR_CLOSING = 4,
 	FAULT = 5,
-    OBSTACLE_DETECTION = 6
+	OBSTACLE_DETECTION = 6
 } state_t;
 
-uint8_t floor_choice_index = 0; // for testing
+uint8_t floor_choice_index = 0;	  // for testing
 int floors_list[] = {5, 3, 3, 1}; // for testing
 
 // Keypad input variables
@@ -47,32 +46,43 @@ static void handle_error(uint8_t return_code)
 	// Non-zero return code indicates critical fault
 	if (return_code)
 	{
-	    while(1);
+		while (1)
+			;
 	}
 }
 
 static int8_t floor_choice(void)
 {
 	uint8_t key = KEYPAD_GetKey();
-	if (key >= '0' && key <= '9') {
+	if (key >= '0' && key <= '9')
+	{
 		input_digits[input_index] = key - '0';
 		input_index++;
-		if (input_index == 2) {
+		if (input_index == 2)
+		{
 			int floor = input_digits[0] * 10 + input_digits[1];
 			input_index = 0; // reset for next input
-			if (floor >= MIN_FLOOR && floor <= MAX_FLOOR) {
+			if (floor >= MIN_FLOOR && floor <= MAX_FLOOR)
+			{
 				return floor;
-			} else {
+			}
+			else
+			{
 				// invalid, reset
 				return -1;
 			}
 		}
-	} else if (key == '#') {
-		if (input_index == 1) {
+	}
+	else if (key == '#')
+	{
+		if (input_index == 1)
+		{
 			int floor = input_digits[0];
 			input_index = 0;
 			return floor;
-		} else if (input_index == 2) {
+		}
+		else if (input_index == 2)
+		{
 			int floor = input_digits[0] * 10 + input_digits[1];
 			input_index = 0;
 			return floor;
@@ -112,13 +122,13 @@ static void on_enter(state_t new_state, int8_t *requested_floor, int8_t *current
 	switch (new_state)
 	{
 	case IDLE:
-        // Display "Choose the floor" on LCD screen:
+		// Display "Choose the floor" on LCD screen:
 		lcd_clrscr();
 		lcd_puts("Choose the floor");
 		break;
 	case GOINGUP:
 		set_gpio(&movement_led); // turn movement LED ON
-        // Display "Current floor: XX" on LCD screen:
+								 // Display "Current floor: XX" on LCD screen:
 		lcd_clrscr();
 		char buf[20];
 		sprintf(buf, "Current floor: %d", *current_floor);
@@ -134,13 +144,13 @@ static void on_enter(state_t new_state, int8_t *requested_floor, int8_t *current
 	case DOOR_OPENING:
 		set_gpio(&doors_led);
 		_delay_ms(DOOR_OPEN_DURATION_MS); // door led is one for 3 seconds
-        // Display "Door open" on LCD screen:
+										  // Display "Door open" on LCD screen:
 		lcd_clrscr();
 		lcd_puts("Door open");
 		break;
 	case DOOR_CLOSING:
-        set_gpio(&doors_led);
-        // Display "Door closing" on LCD screen:
+		set_gpio(&doors_led);
+		// Display "Door closing" on LCD screen:
 		lcd_clrscr();
 		lcd_puts("Door closing");
 		_delay_ms(DOOR_CLOSE_DURATION_MS); // door led is one for 2 seconds
@@ -152,27 +162,29 @@ static void on_enter(state_t new_state, int8_t *requested_floor, int8_t *current
 		if (*current_floor > MAX_FLOOR)
 			*current_floor = MAX_FLOOR;
 		*requested_floor = -1; // reset requested floor
-		
+
 		// Display "Same floor" on LCD screen to indicate fault:
 		lcd_clrscr();
 		lcd_puts("Same floor");
 		break;
-    case OBSTACLE_DETECTION:
-        // Obstacle detected: obstacle led blinks 3 times, LCD displays "Obstacle detected", buzzer plays melody with 5 notes, stops until any button on the keypad is pressed
+	case OBSTACLE_DETECTION:
+		// Obstacle detected: obstacle led blinks 3 times, LCD displays "Obstacle detected", buzzer plays melody with 5 notes, stops until any button on the keypad is pressed
 		lcd_clrscr();
 		lcd_puts("Obstacle detected");
-		
+
 		// TODO: Blink obstacle LED 3 times
 		// TODO: Play buzzer melody (5 notes)
-		
+
 		// Wait for any keypad press to stop
-		while (1) {
+		while (1)
+		{
 			uint8_t key = KEYPAD_GetKey();
-			if (key != 0) {
+			if (key != 0)
+			{
 				break;
 			}
 		}
-    	break;
+		break;
 	}
 }
 
@@ -185,7 +197,8 @@ static void on_loop(state_t current_state, int8_t *requested_floor, int8_t *curr
 		_delay_ms(10);
 		{
 			int8_t floor = floor_choice();
-			if (floor >= 0) *requested_floor = floor;
+			if (floor >= 0)
+				*requested_floor = floor;
 		}
 		break;
 	case GOINGUP:
@@ -219,15 +232,15 @@ static void on_exit(state_t old_state, int8_t *requested_floor, int8_t *current_
 		break;
 	case DOOR_CLOSING:
 	case DOOR_OPENING:
-        clear_gpio(&doors_led);
-        break;
-    }
+		clear_gpio(&doors_led);
+		break;
+	}
 }
 
 int main(void)
 {
-    uint8_t rc = setup_uart_io();
-    handle_error(rc);
+	uint8_t rc = setup_uart_io();
+	handle_error(rc);
 
 	// Configuring GPIO mappings
 	init_avr_gpio_pins();
@@ -242,27 +255,26 @@ int main(void)
 	clear_gpio(&doors_led);
 	set_as_output(&doors_led);
 
+	// char username[32] = {0};
 
-    //char username[32] = {0};
-
-    // print out using the UART. This can be accessed via terminals such as PuTTY.
-    /*
+	// print out using the UART. This can be accessed via terminals such as PuTTY.
+	/*
 	printf("Hello World! What is your name (max 30 characters)?\r\n");
 
-    // Read username safely
-    fgets(username, sizeof(username), stdin);
+	// Read username safely
+	fgets(username, sizeof(username), stdin);
 
-    for (size_t i = 0; i < sizeof(username); i++)
-    {
+	for (size_t i = 0; i < sizeof(username); i++)
+	{
 		if (username[i] == 10) // if it is an LF
 		{
 			username[i] = 0; // finished the string
 			break;
 		}
-    }
+	}
 	*/
 
-    /* elevator variables, elevator has 5 floors */
+	/* elevator variables, elevator has 5 floors */
 	volatile state_t elevator_state = IDLE;
 	int8_t requested_floor = -1;
 	int8_t current_floor = 1;
@@ -279,12 +291,12 @@ int main(void)
 		case GOINGUP:
 		case GOINGDOWN:
 			next_state = elevator_state;
-			//printf("Current floor: %d\r\n", current_floor);
+			// printf("Current floor: %d\r\n", current_floor);
 			if (requested_floor == current_floor)
 			{
 				// FLOOR REACHED
 				next_state = DOOR_OPENING;
-				//printf("Floor %d reached\r\n", current_floor);
+				// printf("Floor %d reached\r\n", current_floor);
 			}
 			break;
 		case DOOR_OPENING:
@@ -301,7 +313,7 @@ int main(void)
 			}
 			else
 			{
-                requested_floor = 0; //reset requested floor before going IDLE
+				requested_floor = 0; // reset requested floor before going IDLE
 				next_state = IDLE;
 			}
 			break;
@@ -309,12 +321,12 @@ int main(void)
 			// WRONG FLOOR INPUT. RECOVERY ON ENTER, THEN PROCEED TO IDLE
 			next_state = IDLE;
 			break;
-        case OBSTACLE_DETECTION:
-            // Obstacle detected: obstacle led blinks 3 times, LCD displays "Obstacle detected", buzzer plays melody with 5 notes, stops until any button on the keypad is pressed
-            //
+		case OBSTACLE_DETECTION:
+			// Obstacle detected: obstacle led blinks 3 times, LCD displays "Obstacle detected", buzzer plays melody with 5 notes, stops until any button on the keypad is pressed
+			//
 
-            next_state = DOOR_CLOSING;
-            break;
+			next_state = DOOR_CLOSING;
+			break;
 		}
 		printf("elevator_state: %d "
 			   "next_state: %d "
@@ -335,6 +347,6 @@ int main(void)
 			on_enter(elevator_state, &requested_floor, &current_floor);
 		}
 	}
- 
-    return 0;
+
+	return 0;
 }
