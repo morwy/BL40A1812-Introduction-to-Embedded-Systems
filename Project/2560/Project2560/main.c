@@ -56,19 +56,19 @@ static void lcd_show_text(const char *text)
 {
 	if (text == NULL)
 	{
-		printf("%s: provided text is NULL!\r\n", __FUNCTION__);
+		printf("%s(): provided text is NULL!\r\n", __FUNCTION__);
 		return;
 	}
 
 	if (strlen(text) > LCD_DISP_LENGTH)
 	{
-		printf("%s: provided text is longer than %d characters, it will be truncated.\r\n", __FUNCTION__, LCD_DISP_LENGTH);
+		printf("%s(): provided text is longer than %d characters, it will be truncated.\r\n", __FUNCTION__, LCD_DISP_LENGTH);
 	}
 
 	lcd_clrscr();
 	lcd_puts(text);
 
-	printf("%s: displayed text: %s\r\n", __FUNCTION__, text);
+	printf("%s(): displayed text \"%s\"\r\n", __FUNCTION__, text);
 }
 
 static int8_t floor_choice(void)
