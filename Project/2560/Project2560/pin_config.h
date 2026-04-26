@@ -70,13 +70,14 @@
 /////////////////////////////////
 
 // Changed as in the project description it must be able to use floor 0
+#define FLOOR_NOT_SELECTED (-1)
 #define MIN_FLOOR (0)
 #define MAX_FLOOR (99)
 
 void init_avr_gpio_pins(void);
 
-extern avr_gpio_t floor_buttons[MAX_FLOOR-MIN_FLOOR+1];
-extern avr_gpio_t floor_leds[MAX_FLOOR-MIN_FLOOR+1];
+extern avr_gpio_t floor_buttons[MAX_FLOOR - MIN_FLOOR + 1];
+extern avr_gpio_t floor_leds[MAX_FLOOR - MIN_FLOOR + 1];
 extern avr_gpio_t doors_led;
 extern avr_gpio_t movement_led;
 

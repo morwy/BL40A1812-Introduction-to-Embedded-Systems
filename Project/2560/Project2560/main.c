@@ -94,7 +94,7 @@ static int8_t floor_choice(void)
 			else
 			{
 				// invalid, reset
-				return -1;
+				return FLOOR_NOT_SELECTED;
 			}
 		}
 	}
@@ -114,7 +114,8 @@ static int8_t floor_choice(void)
 		}
 		// if no digits, ignore
 	}
-	return -1; // not ready or invalid
+
+	return FLOOR_NOT_SELECTED; // not ready or invalid
 }
 
 state_t idle_state_transition_check(const int8_t requested_floor, const int8_t current_floor)
@@ -198,7 +199,8 @@ static void on_enter(state_t new_state, int8_t *requested_floor, int8_t *current
 			*current_floor = MAX_FLOOR;
 		}
 
-		*requested_floor = -1; // reset requested floor
+		// reset requested floor
+		*requested_floor = FLOOR_NOT_SELECTED;
 
 		lcd_show_text("Same floor");
 		break;
@@ -307,7 +309,7 @@ int main(void)
 
 	// Elevator part
 	volatile state_t elevator_state = IDLE;
-	int8_t requested_floor = -1;
+	int8_t requested_floor = FLOOR_NOT_SELECTED;
 	int8_t current_floor = 1;
 
 	// State machine - switch case
@@ -351,7 +353,7 @@ int main(void)
 			else
 			{
 				// reset requested floor before going IDLE
-				requested_floor = 0;
+				requested_floor = FLOOR_NOT_SELECTED;
 				next_state = IDLE;
 			}
 			break;
