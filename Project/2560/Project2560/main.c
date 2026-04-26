@@ -131,14 +131,14 @@ static void on_enter(state_t new_state, int8_t *requested_floor, int8_t *current
 								 // Display "Current floor: XX" on LCD screen:
 		lcd_clrscr();
 		char buf[20];
-		sprintf(buf, "Current floor: %d", *current_floor);
+		sprintf(buf, "Current floor:%d", *current_floor);
 		lcd_puts(buf);
 		break;
 	case GOINGDOWN:
 		set_gpio(&movement_led); // turn movement LED ON
 		// Display "Current floor: XX" on LCD screen:
 		lcd_clrscr();
-		sprintf(buf, "Current floor: %d", *current_floor);
+		sprintf(buf, "Current floor:%d", *current_floor);
 		lcd_puts(buf);
 		break;
 	case DOOR_OPENING:
@@ -207,14 +207,14 @@ static void on_loop(state_t current_state, int8_t *requested_floor, int8_t *curr
 		// Display new "Current floor: XX" on LCD screen:
 		lcd_clrscr();
 		char buf[20];
-		sprintf(buf, "Current floor: %d", *current_floor);
+		sprintf(buf, "Current floor:%d", *current_floor);
 		lcd_puts(buf);
 		break;
 	case GOINGDOWN:
 		(*current_floor)--;
 		// Display new "Current floor: XX" on LCD screen:
 		lcd_clrscr();
-		sprintf(buf, "Current floor: %d", *current_floor);
+		sprintf(buf, "Current floor:%d", *current_floor);
 		lcd_puts(buf);
 		_delay_ms(FLOOR_MOVING_SPEED_MS);
 		break;
