@@ -34,9 +34,6 @@ typedef enum
 	OBSTACLE_DETECTION = 6
 } state_t;
 
-uint8_t floor_choice_index = 0;	  // for testing
-int floors_list[] = {5, 3, 3, 1}; // for testing
-
 // Keypad input variables
 static uint8_t input_digits[2];
 static uint8_t input_index = 0;
@@ -313,6 +310,8 @@ int main(void)
 	int8_t current_floor = 1;
 
 	// State machine - switch case
+	on_enter(elevator_state, &requested_floor, &current_floor);
+
 	while (1)
 	{
 		state_t next_state = FAULT;
