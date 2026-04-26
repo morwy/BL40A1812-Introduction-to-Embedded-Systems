@@ -154,7 +154,7 @@ static void on_enter(state_t new_state, int8_t *requested_floor, int8_t *current
 		set_gpio(&movement_led); // turn movement LED ON
 
 		char buf[20];
-		sprintf(buf, "Current floor:%d", *current_floor);
+		sprintf(buf, "Current floor:  \r\n%d", *current_floor);
 		lcd_show_text(buf);
 
 		break;
@@ -164,7 +164,7 @@ static void on_enter(state_t new_state, int8_t *requested_floor, int8_t *current
 		set_gpio(&movement_led); // turn movement LED ON
 
 		char buf[20];
-		sprintf(buf, "Current floor:%d", *current_floor);
+		sprintf(buf, "Current floor:  \r\n%d", *current_floor);
 		lcd_show_text(buf);
 
 		break;
@@ -247,7 +247,7 @@ static void on_loop(state_t current_state, int8_t *requested_floor, int8_t *curr
 		(*current_floor)++;
 
 		char buf[20];
-		sprintf(buf, "Current floor:%d", *current_floor);
+		sprintf(buf, "Current floor:  \r\n%d", *current_floor);
 		lcd_show_text(buf);
 		break;
 	}
@@ -256,7 +256,7 @@ static void on_loop(state_t current_state, int8_t *requested_floor, int8_t *curr
 		(*current_floor)--;
 
 		char buf[20];
-		sprintf(buf, "Current floor:%d", *current_floor);
+		sprintf(buf, "Current floor:  \r\n%d", *current_floor);
 		lcd_show_text(buf);
 		_delay_ms(FLOOR_MOVING_SPEED_MS);
 		break;
