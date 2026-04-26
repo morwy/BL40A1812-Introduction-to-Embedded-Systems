@@ -51,6 +51,26 @@ static void handle_error(uint8_t return_code)
 	}
 }
 
+// Helper function for displaying text on LCD screen, with some error handling.
+static void lcd_show_text(const char *text)
+{
+	if (text == NULL)
+	{
+		printf("%s: provided text is NULL!\r\n", __FUNCTION__);
+		return;
+	}
+
+	if (strlen(text) > LCD_DISP_LENGTH)
+	{
+		printf("%s: provided text is longer than %d characters, it will be truncated.\r\n", __FUNCTION__, LCD_DISP_LENGTH);
+	}
+
+	lcd_clrscr();
+	lcd_puts(text);
+
+	printf("%s: displayed text: %s\r\n", __FUNCTION__, text);
+}
+
 static int8_t floor_choice(void)
 {
 	uint8_t key = KEYPAD_GetKey();
@@ -122,55 +142,44 @@ static void on_enter(state_t new_state, int8_t *requested_floor, int8_t *current
 	switch (new_state)
 	{
 	case IDLE:
-		// Display "Choose the floor" on LCD screen:
-		lcd_clrscr();
-		lcd_puts("Choose the floor");
+		lcd_show_text("Choose the floor");
 		break;
 	case GOINGUP:
 		set_gpio(&movement_led); // turn movement LED ON
-								 // Display "Current floor: XX" on LCD screen:
-		lcd_clrscr();
 		char buf[20];
 		sprintf(buf, "Current floor:%d", *current_floor);
-		lcd_puts(buf);
+		lcd_show_text(buf);
 		break;
 	case GOINGDOWN:
 		set_gpio(&movement_led); // turn movement LED ON
-		// Display "Current floor: XX" on LCD screen:
-		lcd_clrscr();
 		sprintf(buf, "Current floor:%d", *current_floor);
-		lcd_puts(buf);
+		lcd_show_text(buf);
 		break;
 	case DOOR_OPENING:
 		set_gpio(&doors_led);
 		_delay_ms(DOOR_OPEN_DURATION_MS); // door led is one for 3 seconds
-										  // Display "Door open" on LCD screen:
-		lcd_clrscr();
-		lcd_puts("Door open");
+		lcd_show_text("Door open");
 		break;
 	case DOOR_CLOSING:
 		set_gpio(&doors_led);
-		// Display "Door closing" on LCD screen:
-		lcd_clrscr();
-		lcd_puts("Door closing");
+		lcd_show_text("Door closing");
 		_delay_ms(DOOR_CLOSE_DURATION_MS); // door led is one for 2 seconds
 		break;
 	case FAULT:
 		// FAULT RECOVERY
 		if (*current_floor < MIN_FLOOR)
 			*current_floor = MIN_FLOOR;
+
 		if (*current_floor > MAX_FLOOR)
 			*current_floor = MAX_FLOOR;
+
 		*requested_floor = -1; // reset requested floor
 
-		// Display "Same floor" on LCD screen to indicate fault:
-		lcd_clrscr();
-		lcd_puts("Same floor");
+		lcd_show_text("Same floor");
 		break;
 	case OBSTACLE_DETECTION:
 		// Obstacle detected: obstacle led blinks 3 times, LCD displays "Obstacle detected", buzzer plays melody with 5 notes, stops until any button on the keypad is pressed
-		lcd_clrscr();
-		lcd_puts("Obstacle detected");
+		lcd_show_text("Obstacle detected");
 
 		// TODO: Blink obstacle LED 3 times
 		// TODO: Play buzzer melody (5 notes)
@@ -194,6 +203,7 @@ static void on_loop(state_t current_state, int8_t *requested_floor, int8_t *curr
 	switch (current_state)
 	{
 	case IDLE:
+	{
 		_delay_ms(10);
 		{
 			int8_t floor = floor_choice();
@@ -201,23 +211,27 @@ static void on_loop(state_t current_state, int8_t *requested_floor, int8_t *curr
 				*requested_floor = floor;
 		}
 		break;
+	}
 	case GOINGUP:
+	{
 		_delay_ms(FLOOR_MOVING_SPEED_MS);
 		(*current_floor)++;
-		// Display new "Current floor: XX" on LCD screen:
-		lcd_clrscr();
+
 		char buf[20];
 		sprintf(buf, "Current floor:%d", *current_floor);
-		lcd_puts(buf);
+		lcd_show_text(buf);
 		break;
+	}
 	case GOINGDOWN:
+	{
 		(*current_floor)--;
-		// Display new "Current floor: XX" on LCD screen:
-		lcd_clrscr();
+
+		char buf[20];
 		sprintf(buf, "Current floor:%d", *current_floor);
-		lcd_puts(buf);
+		lcd_show_text(buf);
 		_delay_ms(FLOOR_MOVING_SPEED_MS);
 		break;
+	}
 	}
 }
 
