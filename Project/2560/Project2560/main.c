@@ -23,6 +23,8 @@
 #define FAULT_BLINK_PERIOD_MS (200)
 #define FAULT_BLINK_DURATION_MS (3000)
 
+#define MAX_TEXT_LENGTH (LCD_LINES * LCD_DISP_LENGTH)
+
 typedef enum
 {
 	IDLE = 0,
@@ -60,9 +62,9 @@ static void lcd_show_text(const char *text)
 		return;
 	}
 
-	if (strlen(text) > LCD_DISP_LENGTH)
+	if (strlen(text) > MAX_TEXT_LENGTH)
 	{
-		printf("%s(): provided text is longer than %d characters, it will be truncated.\r\n", __FUNCTION__, LCD_DISP_LENGTH);
+		printf("%s(): provided text is longer than %d characters, it will be truncated.\r\n", __FUNCTION__, MAX_TEXT_LENGTH);
 	}
 
 	lcd_clrscr();
@@ -146,14 +148,14 @@ static void on_enter(state_t new_state, int8_t *requested_floor, int8_t *current
 	{
 	case IDLE:
 	{
-		lcd_show_text("Choose the floor");
+		lcd_show_text("Select floor:  ");
 		break;
 	}
 	case GOING_UP:
 	{
 		set_gpio(&movement_led); // turn movement LED ON
 
-		char buf[20];
+		char buf[MAX_TEXT_LENGTH];
 		sprintf(buf, "Current floor:  \r\n%d", *current_floor);
 		lcd_show_text(buf);
 
@@ -163,7 +165,7 @@ static void on_enter(state_t new_state, int8_t *requested_floor, int8_t *current
 	{
 		set_gpio(&movement_led); // turn movement LED ON
 
-		char buf[20];
+		char buf[MAX_TEXT_LENGTH];
 		sprintf(buf, "Current floor:  \r\n%d", *current_floor);
 		lcd_show_text(buf);
 
@@ -238,6 +240,10 @@ static void on_loop(state_t current_state, int8_t *requested_floor, int8_t *curr
 		if (floor >= 0)
 		{
 			*requested_floor = floor;
+
+			char buf[MAX_TEXT_LENGTH];
+			sprintf(buf, "Select floor:  \r\n%d", *requested_floor);
+			lcd_show_text(buf);
 		}
 		break;
 	}
@@ -246,7 +252,7 @@ static void on_loop(state_t current_state, int8_t *requested_floor, int8_t *curr
 		_delay_ms(FLOOR_MOVING_SPEED_MS);
 		(*current_floor)++;
 
-		char buf[20];
+		char buf[MAX_TEXT_LENGTH];
 		sprintf(buf, "Current floor:  \r\n%d", *current_floor);
 		lcd_show_text(buf);
 		break;
@@ -255,7 +261,7 @@ static void on_loop(state_t current_state, int8_t *requested_floor, int8_t *curr
 	{
 		(*current_floor)--;
 
-		char buf[20];
+		char buf[MAX_TEXT_LENGTH];
 		sprintf(buf, "Current floor:  \r\n%d", *current_floor);
 		lcd_show_text(buf);
 		_delay_ms(FLOOR_MOVING_SPEED_MS);
