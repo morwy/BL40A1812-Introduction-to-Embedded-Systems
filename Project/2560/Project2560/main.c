@@ -154,16 +154,21 @@ static void on_enter(state_t new_state, int8_t *requested_floor, int8_t *current
 	case GOING_UP:
 	{
 		set_gpio(&movement_led); // turn movement LED ON
+
 		char buf[20];
 		sprintf(buf, "Current floor:%d", *current_floor);
 		lcd_show_text(buf);
+
 		break;
 	}
 	case GOING_DOWN:
 	{
 		set_gpio(&movement_led); // turn movement LED ON
+
+		char buf[20];
 		sprintf(buf, "Current floor:%d", *current_floor);
 		lcd_show_text(buf);
+
 		break;
 	}
 	case DOOR_OPENING:
