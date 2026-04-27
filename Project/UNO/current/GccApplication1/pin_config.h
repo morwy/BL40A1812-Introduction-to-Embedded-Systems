@@ -10,10 +10,10 @@
 #define BUZZER_DDR      DDRB
 #define BUZZER_PIN      PB2
 
-// Obstacle LED (Arduino Pin D11)
+// Obstacle LED (Arduino Pin D13)
 #define OBSTACLE_PORT   PORTB
 #define OBSTACLE_DDR    DDRB
-#define OBSTACLE_PIN    PB3
+#define OBSTACLE_PIN    PB5
 
 // HC-SR04 Sensor (Arduino Pins D4 & D5)
 #define TRIG_PORT       PORTD
