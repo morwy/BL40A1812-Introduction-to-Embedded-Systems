@@ -20,6 +20,7 @@ ISR(TWI_vect) {
 	switch (TW_STATUS) {
 		
 		// Master gives us a sock
+		case TW_SR_SLA_ACK:
 		case TW_SR_DATA_ACK:
 		{
 			uint8_t command = TWDR; 
