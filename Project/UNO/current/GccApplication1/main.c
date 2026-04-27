@@ -62,8 +62,8 @@ void init_hardware(void) {
 	OBSTACLE_DDR |= (1 << OBSTACLE_PIN);
 	OBSTACLE_PORT &= ~(1 << OBSTACLE_PIN);
 
-	buzzer_init();
-	hcsr04_init();
+	//buzzer_init();
+	//hcsr04_init();
 
 	TWAR = (UNO_I2C_ADDRESS << 1);
 	

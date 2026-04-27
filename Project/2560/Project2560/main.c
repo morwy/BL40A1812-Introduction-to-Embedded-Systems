@@ -306,9 +306,15 @@ static void on_loop(state_t current_state, int8_t *requested_floor, int8_t *curr
 	case DOOR_OPENING:
 	{
 		// Poll UNO obstacle status during the door-open period.
+
 		printf("Polling UNO obstacle status\r\n");
-		obstacle_status = twi_master_read_from_slave();
+		//obstacle_status = twi_master_read_from_slave();
+
+		// Testing write to slave
+		twi_master_write_to_slave(CMD_OBSTACLE_ON);
+
 		printf("UNO obstacle status: %d\r\n", obstacle_status);
+
 
 		// Time slice: 300ms tick
 		_delay_ms(300);
