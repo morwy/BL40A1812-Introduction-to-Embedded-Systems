@@ -80,11 +80,16 @@ void init_hardware(void) {
 int main(void) {
 	init_hardware();
 
+	// Testing
+	OBSTACLE_PORT ^= (1 << OBSTACLE_PIN);
+	_delay_ms(1000);
+	OBSTACLE_PORT ^= (1 << OBSTACLE_PIN);
+
 	while (1) {
 		
-		hcsr04_update();
+		//hcsr04_update();
 		
-		buzzer_update();
+		//buzzer_update();
 	}
 	
 	return 0;
