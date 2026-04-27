@@ -225,7 +225,7 @@ static void on_enter(state_t new_state, int8_t *requested_floor, int8_t *current
         set_gpio(&doors_led);
         // Display "Door closing" on LCD screen:
 		// code here
-		_delay_ms(DOOR_CLOSE_DURATION_MS); // door led is one for 2 seconds
+		_delay_ms(DOOR_CLOSING_DURATION_MS); // door led is one for 2 seconds
 		break;
 	}
 	case FAULT:
