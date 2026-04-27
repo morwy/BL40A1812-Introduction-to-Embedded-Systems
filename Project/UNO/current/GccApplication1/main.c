@@ -4,6 +4,7 @@
 #include <avr/interrupt.h>
 #include <util/twi.h>
 #include <stdbool.h>
+#include <util/delay.h>
 
 #include "pin_config.h"
 #include "i2c_protocol.h"
