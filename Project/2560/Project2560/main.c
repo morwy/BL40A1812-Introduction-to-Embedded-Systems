@@ -17,8 +17,9 @@
 #include "keypad.h"
 #include "lcd.h"
 
-#define DOOR_OPEN_DURATION_MS (3000)
-#define DOOR_CLOSE_DURATION_MS (2000)
+#define DOOR_OPENING_DURATION_MS (3000)
+#define DOOR_CLOSING_DURATION_MS (2000)
+#define DOOR_OPEN_DURATION_MS (1000)
 #define FLOOR_MOVING_SPEED_MS (3000)
 #define FAULT_BLINK_PERIOD_MS (200)
 #define FAULT_BLINK_DURATION_MS (3000)
@@ -186,15 +187,15 @@ static void on_enter(state_t new_state, int8_t *requested_floor, int8_t *current
 	case DOOR_OPENING:
 	{
 		set_gpio(&doors_led);
-		_delay_ms(DOOR_OPEN_DURATION_MS); // door led is one for 3 seconds
-		lcd_show_text("Door open");
+		lcd_show_text("Door opening");
+		_delay_ms(DOOR_OPENING_DURATION_MS); // door led is one for 3 seconds
 		break;
 	}
 	case DOOR_CLOSING:
 	{
 		set_gpio(&doors_led);
 		lcd_show_text("Door closing");
-		_delay_ms(DOOR_CLOSE_DURATION_MS); // door led is one for 2 seconds
+		_delay_ms(DOOR_CLOSING_DURATION_MS); // door led is one for 2 seconds
 		break;
 	}
 	case FAULT:
@@ -291,9 +292,16 @@ static void on_exit(state_t old_state, int8_t *requested_floor, int8_t *current_
 		break;
 	}
 	case DOOR_CLOSING:
+	{
+		clear_gpio(&doors_led);
+		break;
+	}
+	
 	case DOOR_OPENING:
 	{
 		clear_gpio(&doors_led);
+		lcd_show_text("Door open"); //display "Door open" for 1 sec
+		_delay_ms(DOOR_OPEN_DURATION_MS);
 		break;
 	}
 	}
