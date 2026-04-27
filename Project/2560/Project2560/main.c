@@ -62,7 +62,7 @@ static void handle_error(uint8_t return_code)
 static void twi_master_init(void)
 {
 	// Fixed bit rate and prescaler=1
-	TWBR = 0x03;
+	TWBR = 72;
 	TWSR = 0x00;
 	TWCR |= (1 << TWEN);
 }
