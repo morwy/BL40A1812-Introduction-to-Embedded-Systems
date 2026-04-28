@@ -40,8 +40,9 @@ typedef enum
 	OBSTACLE_DETECTION = 6
 } state_t;
 
-uint8_t floor_choice_index = 0; // for testing
-int floors_list[] = {5, 3, 3, 1}; // for testing
+// Keypad input variables
+static uint8_t input_digits[2];
+static uint8_t input_index = 0;
 
 static uint16_t door_open_elapsed_ms = 0;
 static uint8_t obstacle_status = STATUS_CLEAR;
@@ -152,14 +153,80 @@ static uint8_t twi_master_read_from_slave(void)
 	return data;
 }
 
-static int8_t floor_choice(void) //testing purposes before implementing the keypad
+// Helper function for displaying text on LCD screen, with some error handling.
+static void lcd_show_text(const char *text)
 {
-	if (floor_choice_index > 3) {
-		return 0;
+	if (text == NULL)
+	{
+		printf("%s(): provided text is NULL!\r\n", __FUNCTION__);
+		return;
 	}
-	int floor = floors_list[floor_choice_index];
-	floor_choice_index++;
-	return floor;
+
+	if (strlen(text) > MAX_TEXT_LENGTH)
+	{
+		printf("%s(): provided text is longer than %d characters, it will be truncated.\r\n", __FUNCTION__, MAX_TEXT_LENGTH);
+	}
+
+	lcd_clrscr();
+	lcd_puts(text);
+
+	printf("%s(): displayed text \"%s\"\r\n", __FUNCTION__, text);
+}
+
+static int8_t floor_choice(void)
+{
+	const uint8_t key = KEYPAD_GetKey();
+	printf("%s(): \"%c\" key was entered\r\n", __FUNCTION__, key);
+
+	if (key >= '0' && key <= '9')
+	{
+		input_digits[input_index] = key - '0';
+		input_index++;
+
+		char buf[MAX_TEXT_LENGTH];
+
+		if (input_index == 1)
+		{
+			sprintf(buf, "Select floor:   \r\n%d", input_digits[0]);
+			lcd_show_text(buf);
+		}
+		else if (input_index == 2)
+		{
+			int floor = input_digits[0] * 10 + input_digits[1];
+			input_index = 0; // reset for next input
+
+			sprintf(buf, "Select floor:   \r\n%d%d", input_digits[0], input_digits[1]);
+			lcd_show_text(buf);
+
+			if (floor >= MIN_FLOOR && floor <= MAX_FLOOR)
+			{
+				return floor;
+			}
+			else
+			{
+				// invalid, reset
+				return FLOOR_NOT_SELECTED;
+			}
+		}
+	}
+	else if (key == '#')
+	{
+		if (input_index == 1)
+		{
+			int floor = input_digits[0];
+			input_index = 0;
+			return floor;
+		}
+		else if (input_index == 2)
+		{
+			int floor = input_digits[0] * 10 + input_digits[1];
+			input_index = 0;
+			return floor;
+		}
+		// if no digits, ignore
+	}
+
+	return FLOOR_NOT_SELECTED; // not ready or invalid
 }
 
 state_t idle_state_transition_check(const int8_t requested_floor, const int8_t current_floor)
@@ -187,27 +254,33 @@ state_t idle_state_transition_check(const int8_t requested_floor, const int8_t c
 
 static void on_enter(state_t new_state, int8_t *requested_floor, int8_t *current_floor)
 {
-	printf("on_enter new_state: %d\r\n", new_state);
+	printf("%s(): new_state: %d\r\n", __FUNCTION__, new_state);
+
 	switch (new_state)
 	{
 	case IDLE:
 	{
-        // Display "Choose the floor" on LCD screen:
-		// code here
+		lcd_show_text("Select floor:   ");
 		break;
 	}
 	case GOING_UP:
 	{
 		set_gpio(&movement_led); // turn movement LED ON
-        // Display "Current floor: XX" on LCD screen:
-        // code here
+
+		char buf[MAX_TEXT_LENGTH];
+		sprintf(buf, "Current floor:  \r\n%d", *current_floor);
+		lcd_show_text(buf);
+
 		break;
 	}
 	case GOING_DOWN:
 	{
 		set_gpio(&movement_led); // turn movement LED ON
-		// Display "Current floor: XX" on LCD screen:
-		// code here
+
+		char buf[MAX_TEXT_LENGTH];
+		sprintf(buf, "Current floor:  \r\n%d", *current_floor);
+		lcd_show_text(buf);
+
 		break;
 	}
 	case DOOR_OPENING:
@@ -216,15 +289,13 @@ static void on_enter(state_t new_state, int8_t *requested_floor, int8_t *current
 		// Door LED is on for 3 seconds, but we time-slice in on_loop
 		// so we can poll the UNO obstacle status 10 times
 		door_open_elapsed_ms = 0;
-        // Display "Door open" on LCD screen:
-		// code here
+		lcd_show_text("Door opening");
 		break;
 	}
 	case DOOR_CLOSING:
 	{
         set_gpio(&doors_led);
-        // Display "Door closing" on LCD screen:
-		// code here
+		lcd_show_text("Door closing");
 		_delay_ms(DOOR_CLOSING_DURATION_MS); // door led is one for 2 seconds
 		break;
 	}
@@ -243,16 +314,14 @@ static void on_enter(state_t new_state, int8_t *requested_floor, int8_t *current
 
 		// reset requested floor
 		*requested_floor = FLOOR_NOT_SELECTED;
-		
-		// Display "Same floor" on LCD screen to indicate fault:
-		// code here
+
+		lcd_show_text("Same floor");
 		break;
 	}
     case OBSTACLE_DETECTION:
 	{
 		// Obstacle detected: obstacle led blinks 3 times, LCD displays "Obstacle detected", buzzer plays melody with 5 notes, stops until any button on the keypad is pressed
-        // code here
-		// - TODO (LCD): display "Obstacle detected"
+        lcd_show_text("Obstacle detected");
 		
 		// Tell UNO to start blinking + buzzer/melody
 		printf("Sending start command to UNO\r\n");
@@ -260,17 +329,14 @@ static void on_enter(state_t new_state, int8_t *requested_floor, int8_t *current
 		printf("Start command sent to UNO\r\n");
 
 		// Wait for any keypad press to stop
-		/* while (1)
+		while (1)
 		{
 			uint8_t key = KEYPAD_GetKey();
 			if (key != 0)
 			{
 				break;
 			}
-		} */
-
-		_delay_ms(3000); // for testing, wait for 3 seconds
-
+		}
         break;
 	}
 	}
@@ -278,54 +344,51 @@ static void on_enter(state_t new_state, int8_t *requested_floor, int8_t *current
 
 static void on_loop(state_t current_state, int8_t *requested_floor, int8_t *current_floor)
 {
-	printf("on_loop current_state: %d\r\n", current_state);
+	printf("%s(): current_state: %d\r\n", __FUNCTION__, current_state);
+
 	switch (current_state)
 	{
 	case IDLE:
 	{
 		_delay_ms(10);
-		*requested_floor = floor_choice();
+
+		int8_t floor = floor_choice();
+		if (floor >= 0)
+		{
+			*requested_floor = floor;
+		}
 		break;
 	}
 	case GOING_UP:
 	{
 		_delay_ms(FLOOR_MOVING_SPEED_MS);
 		(*current_floor)++;
-		// Display new "Current floor: XX" on LCD screen:
-		// code here
+
+		char buf[MAX_TEXT_LENGTH];
+		sprintf(buf, "Current floor:  \r\n%d", *current_floor);
+		lcd_show_text(buf);
 		break;
 	}
 	case GOING_DOWN:
 	{
 		(*current_floor)--;
-		// Display new "Current floor: XX" on LCD screen:
-		// code here
+
+		char buf[MAX_TEXT_LENGTH];
+		sprintf(buf, "Current floor:  \r\n%d", *current_floor);
+		lcd_show_text(buf);
 		_delay_ms(FLOOR_MOVING_SPEED_MS);
 		break;
 	}
 	case DOOR_OPENING:
 	{
-		// Poll UNO obstacle status during the door-open period.
-
+		// Poll UNO obstacle status during the door-opening period
 		printf("Polling UNO obstacle status\r\n");
-		//obstacle_status = twi_master_read_from_slave();
-
-		// Testing write to slave
-		twi_master_write_to_slave(CMD_OBSTACLE_ON);
-
+		obstacle_status = twi_master_read_from_slave();
 		printf("UNO obstacle status: %d\r\n", obstacle_status);
-
 
 		// Time slice: 300ms tick
 		_delay_ms(300);
 		door_open_elapsed_ms += 300;
-
-
-		// Testing, set obstacle flag to 1
-		if (door_open_elapsed_ms >= 900)
-		{
-			obstacle_status = STATUS_OBSTACLE;
-		}
 		
 		break;
 	}
@@ -334,7 +397,8 @@ static void on_loop(state_t current_state, int8_t *requested_floor, int8_t *curr
 
 static void on_exit(state_t old_state, int8_t *requested_floor, int8_t *current_floor)
 {
-	printf("on_exit old_state: %d\r\n", old_state);
+	printf("%s(): old_state: %d\r\n", __FUNCTION__, old_state);
+
 	switch (old_state)
 	{
 	case GOING_UP:
@@ -348,9 +412,12 @@ static void on_exit(state_t old_state, int8_t *requested_floor, int8_t *current_
 		clear_gpio(&doors_led);
 		break;
 	}
+	
 	case DOOR_OPENING:
-    {
+	{
 		clear_gpio(&doors_led);
+		lcd_show_text("Door open"); //display "Door open" for 1 sec
+		_delay_ms(DOOR_OPEN_DURATION_MS);
 		break;
 	}
 	case OBSTACLE_DETECTION:
@@ -370,11 +437,16 @@ static void on_exit(state_t old_state, int8_t *requested_floor, int8_t *current_
 
 int main(void)
 {
-    uint8_t rc = setup_uart_io();
-    handle_error(rc);
+    // Initialize UART communication and handle errors
+	uint8_t rc = setup_uart_io();
+	handle_error(rc);
 
 	// Configuring GPIO mappings
 	init_avr_gpio_pins();
+
+	// Initialize keypad and LCD
+	KEYPAD_Init();
+	lcd_init(LCD_DISP_ON);
 
 	// Initializing movement and door LEDs.
 	clear_gpio(&movement_led);
@@ -385,15 +457,18 @@ int main(void)
 	// Initialize I2C/TWI master 
 	twi_master_init();
 
-    /* elevator variables, elevator has 5 floors */
+    // Elevator part
 	volatile state_t elevator_state = IDLE;
 	int8_t requested_floor = FLOOR_NOT_SELECTED;
 	int8_t current_floor = 1;
 
+	// State machine - switch case
+	on_enter(elevator_state, &requested_floor, &current_floor);
+
 	while (1)
 	{
 		state_t next_state = FAULT;
-		/* State machine - switch case */
+
 		switch (elevator_state)
 		{
 		case IDLE:
@@ -440,7 +515,8 @@ int main(void)
 			}
 			else
 			{
-                requested_floor = FLOOR_NOT_SELECTED; //reset requested floor before going IDLE
+				// reset requested floor before going IDLE
+				requested_floor = FLOOR_NOT_SELECTED;
 				next_state = IDLE;
 			}
 			break;
@@ -453,13 +529,12 @@ int main(void)
 		}
         case OBSTACLE_DETECTION:
 		{
-			// Obstacle detected: obstacle led blinks 3 times, LCD displays "Obstacle detected", buzzer plays melody with 5 notes, stops until any button on the keypad is pressed
-            
-			next_state = DOOR_CLOSING;
 
-            break;
+			next_state = DOOR_CLOSING;
+			break;
 		}
 		}
+
 		printf("elevator_state: %d "
 			   "next_state: %d "
 			   "requested_floor: %d, "
@@ -468,6 +543,7 @@ int main(void)
 			   next_state,
 			   requested_floor,
 			   current_floor);
+
 		if (elevator_state == next_state)
 		{
 			on_loop(elevator_state, &requested_floor, &current_floor);
@@ -479,6 +555,6 @@ int main(void)
 			on_enter(elevator_state, &requested_floor, &current_floor);
 		}
 	}
- 
-    return EXIT_SUCCESS;
+
+	return EXIT_SUCCESS;
 }

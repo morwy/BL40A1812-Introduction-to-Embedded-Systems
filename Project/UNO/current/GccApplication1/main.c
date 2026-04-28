@@ -15,6 +15,21 @@
 volatile bool play_melody = false;
 volatile uint8_t obstacle_status = STATUS_CLEAR;
 
+// --- LED BLINK 3 TIMES ---
+static void blink_led(void)
+{
+	uint8_t i = 0;
+	for (i = 0; i < 3; i++)
+	{
+		// LED on
+		OBSTACLE_PORT |= (1 << OBSTACLE_PIN);
+		_delay_ms(100);
+		// LED off
+		OBSTACLE_PORT &= ~(1 << OBSTACLE_PIN);
+		_delay_ms(100);
+	}
+}
+
 // --- I2C (TWI) INTERRUPT SERVICE ROUTINE ---
 ISR(TWI_vect) {
 	switch (TW_STATUS) {
@@ -26,12 +41,13 @@ ISR(TWI_vect) {
 			uint8_t command = TWDR; 
 			
 			if (command == CMD_OBSTACLE_ON) {
-				OBSTACLE_PORT |= (1 << OBSTACLE_PIN);
-				//buzzer_start_melody();
+				//OBSTACLE_PORT |= (1 << OBSTACLE_PIN);
+				blink_led();
+				buzzer_start_melody();
 			}
 			else if (command == CMD_OBSTACLE_OFF) {
-				OBSTACLE_PORT &= ~(1 << OBSTACLE_PIN);
-				//buzzer_stop_melody();
+				//OBSTACLE_PORT &= ~(1 << OBSTACLE_PIN);
+				buzzer_stop_melody();
 			}
 			else if (command == CMD_BUZZER_START) {
 				buzzer_start_melody(); 			
@@ -63,8 +79,8 @@ void init_hardware(void) {
 	OBSTACLE_DDR |= (1 << OBSTACLE_PIN);
 	OBSTACLE_PORT &= ~(1 << OBSTACLE_PIN);
 
-	//buzzer_init();
-	//hcsr04_init();
+	buzzer_init();
+	hcsr04_init();
 
 	TWAR = (UNO_I2C_ADDRESS << 1);
 	
@@ -82,16 +98,11 @@ void init_hardware(void) {
 int main(void) {
 	init_hardware();
 
-	// Testing
-	OBSTACLE_PORT ^= (1 << OBSTACLE_PIN);
-	_delay_ms(500);
-	OBSTACLE_PORT ^= (1 << OBSTACLE_PIN);
-
 	while (1) {
 		
-		//hcsr04_update();
+		hcsr04_update();
 		
-		//buzzer_update();
+		buzzer_update();
 	}
 	
 	return 0;
