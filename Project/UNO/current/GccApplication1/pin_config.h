@@ -13,7 +13,7 @@
 // Obstacle LED (Arduino Pin D13)
 #define OBSTACLE_PORT   PORTB
 #define OBSTACLE_DDR    DDRB
-#define OBSTACLE_PIN    PB7
+#define OBSTACLE_PIN    PB5
 
 // HC-SR04 Sensor (Arduino Pins D3 & D4)
 #define TRIG_PORT       PORTD

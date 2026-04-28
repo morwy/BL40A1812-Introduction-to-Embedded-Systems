@@ -4,6 +4,7 @@
 #include <avr/interrupt.h>
 #include <util/twi.h>
 #include <stdbool.h>
+#include <util/delay.h>
 
 #include "pin_config.h"
 #include "i2c_protocol.h"
@@ -14,20 +15,39 @@
 volatile bool play_melody = false;
 volatile uint8_t obstacle_status = STATUS_CLEAR;
 
+// --- LED BLINK 3 TIMES ---
+static void blink_led(void)
+{
+	uint8_t i = 0;
+	for (i = 0; i < 3; i++)
+	{
+		// LED on
+		OBSTACLE_PORT |= (1 << OBSTACLE_PIN);
+		_delay_ms(100);
+		// LED off
+		OBSTACLE_PORT &= ~(1 << OBSTACLE_PIN);
+		_delay_ms(100);
+	}
+}
+
 // --- I2C (TWI) INTERRUPT SERVICE ROUTINE ---
 ISR(TWI_vect) {
 	switch (TW_STATUS) {
 		
 		// Master gives us a sock
+		case TW_SR_SLA_ACK:
 		case TW_SR_DATA_ACK:
 		{
 			uint8_t command = TWDR; 
 			
 			if (command == CMD_OBSTACLE_ON) {
-				OBSTACLE_PORT |= (1 << OBSTACLE_PIN);
+				//OBSTACLE_PORT |= (1 << OBSTACLE_PIN);
+				blink_led();
+				buzzer_start_melody();
 			}
 			else if (command == CMD_OBSTACLE_OFF) {
-				OBSTACLE_PORT &= ~(1 << OBSTACLE_PIN);
+				//OBSTACLE_PORT &= ~(1 << OBSTACLE_PIN);
+				buzzer_stop_melody();
 			}
 			else if (command == CMD_BUZZER_START) {
 				buzzer_start_melody(); 			
