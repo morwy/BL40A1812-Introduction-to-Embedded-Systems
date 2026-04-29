@@ -316,6 +316,7 @@ static void on_enter(state_t new_state, int8_t *requested_floor, int8_t *current
 		*requested_floor = FLOOR_NOT_SELECTED;
 
 		lcd_show_text("Same floor");
+		_delay_ms(FAULT_BLINK_DURATION_MS);
 		break;
 	}
     case OBSTACLE_DETECTION:
