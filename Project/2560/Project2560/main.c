@@ -295,6 +295,9 @@ static void on_enter(state_t new_state, int8_t *requested_floor, int8_t *current
 	case DOOR_CLOSING:
 	{
         set_gpio(&doors_led);
+        // Door LED is on for 3 seconds, but we time-slice in on_loop
+        // so we can poll the UNO obstacle status 10 times
+        door_open_elapsed_ms = 0;
 		lcd_show_text("Door closing");
 		_delay_ms(DOOR_CLOSING_DURATION_MS); // door led is one for 2 seconds
 		break;
@@ -378,6 +381,19 @@ static void on_loop(state_t current_state, int8_t *requested_floor, int8_t *curr
 		sprintf(buf, "Current floor:  \r\n%d", *current_floor);
 		lcd_show_text(buf);
 		_delay_ms(FLOOR_MOVING_SPEED_MS);
+		break;
+	}
+	case DOOR_CLOSING:
+	{
+		// Poll UNO obstacle status during the door-opening period
+		printf("Polling UNO obstacle status\r\n");
+		obstacle_status = twi_master_read_from_slave();
+		printf("UNO obstacle status: %d\r\n", obstacle_status);
+
+		// Time slice: 200ms tick
+		_delay_ms(200);
+		door_open_elapsed_ms += 200;
+		
 		break;
 	}
 	case DOOR_OPENING:
@@ -506,7 +522,20 @@ int main(void)
 		}
 		case DOOR_CLOSING:
 		{
-			if (requested_floor < current_floor)
+			if (obstacle_status == STATUS_OBSTACLE)
+			{
+				next_state = OBSTACLE_DETECTION;
+				break;
+			}
+			
+			if (door_open_elapsed_ms < DOOR_CLOSING_DURATION_MS){
+				next_state = DOOR_CLOSING;
+				break;
+			}
+			
+			// If obstacle is detected at any time during this open period, enter OBSTACLE_DETECTION.
+
+			else if (requested_floor < current_floor)
 			{
 				next_state = GOING_DOWN;
 			}
