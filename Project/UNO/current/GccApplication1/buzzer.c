@@ -2,8 +2,19 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-const uint16_t melody_notes[] = {NOTE_E5, NOTE_D5, NOTE_C5, NOTE_D5, NOTE_E5, NOTE_E5, NOTE_E5};
-const uint16_t melody_durations[] = {300, 300, 300, 300, 300, 300, 600};
+const uint16_t melody_notes[] = {
+	NOTE_E5, NOTE_DS5, NOTE_E5, NOTE_DS5, NOTE_E5, NOTE_B4, NOTE_D5, NOTE_C5, NOTE_A4,
+	NOTE_C4, NOTE_E4, NOTE_A4, NOTE_B4,
+	NOTE_E4, NOTE_GS4, NOTE_B4, NOTE_C5,
+	NOTE_E4, NOTE_E5, NOTE_DS5, NOTE_E5, NOTE_DS5, NOTE_E5, NOTE_B4, NOTE_D5, NOTE_C5, NOTE_A4
+};
+
+const uint16_t melody_durations[] = {
+	200, 200, 200, 200, 200, 200, 200, 200, 400,
+	200, 200, 200, 400,
+	200, 200, 200, 400,
+	200, 200, 200, 200, 200, 200, 200, 200, 200, 400
+};
 const uint8_t total_notes = 7;
 
 volatile uint32_t system_millis = 0; 
