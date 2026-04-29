@@ -16,7 +16,7 @@
 // Define the Buzzer Pin (From your pin_config.h / Schematic)
 #define BUZZER_PORT PORTB
 #define BUZZER_DDR  DDRB
-#define BUZZER_PIN  PB2
+#define BUZZER_PIN  PB1
 
 // Function Prototypes
 void buzzer_init(void);
