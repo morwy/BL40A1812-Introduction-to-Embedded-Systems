@@ -267,6 +267,10 @@ static void on_enter(state_t new_state, int8_t *requested_floor, int8_t *current
 	{
 		set_gpio(&movement_led); // turn movement LED ON
 
+		printf("Sending CMD_BUZZER_START command to UNO\r\n");
+		twi_master_write_to_slave(CMD_BUZZER_START);
+		printf("CMD_BUZZER_START command sent to UNO\r\n");
+
 		char buf[MAX_TEXT_LENGTH];
 		sprintf(buf, "Current floor:  \r\n%d", *current_floor);
 		lcd_show_text(buf);
@@ -276,6 +280,10 @@ static void on_enter(state_t new_state, int8_t *requested_floor, int8_t *current
 	case GOING_DOWN:
 	{
 		set_gpio(&movement_led); // turn movement LED ON
+
+		printf("Sending CMD_BUZZER_START command to UNO\r\n");
+		twi_master_write_to_slave(CMD_BUZZER_START);
+		printf("CMD_BUZZER_START command sent to UNO\r\n");
 
 		char buf[MAX_TEXT_LENGTH];
 		sprintf(buf, "Current floor:  \r\n%d", *current_floor);
@@ -421,6 +429,10 @@ static void on_exit(state_t old_state, int8_t *requested_floor, int8_t *current_
 	case GOING_UP:
 	case GOING_DOWN:
 	{
+		printf("Sending CMD_BUZZER_STOP command to UNO\r\n");
+		twi_master_write_to_slave(CMD_BUZZER_STOP);
+		printf("CMD_BUZZER_STOP command sent to UNO\r\n");
+
 		clear_gpio(&movement_led);
 		break;
 	}
@@ -429,7 +441,6 @@ static void on_exit(state_t old_state, int8_t *requested_floor, int8_t *current_
 		clear_gpio(&doors_led);
 		break;
 	}
-	
 	case DOOR_OPENING:
 	{
 		clear_gpio(&doors_led);
