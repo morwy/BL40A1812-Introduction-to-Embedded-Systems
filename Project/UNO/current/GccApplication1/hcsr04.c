@@ -63,9 +63,9 @@ void hcsr04_init(void) {
 	TCCR2B = (1 << CS22);
 	TIMSK2 |= (1 << TOIE2); 
 
-	// 3. Configure Pin Change Interrupts for ECHO pin (PD5)
+	// 3. Configure Pin Change Interrupts for ECHO pin (PD4)
 	PCICR |= (1 << PCIE2);    // Enable Pin Change Interrupts for PORTD
-	PCMSK2 |= (1 << PCINT21); // Unmask PCINT21 (which corresponds to PD5)
+	PCMSK2 |= (1 << PCINT20); // Unmask PCINT20 (which corresponds to PD4)
 }
 
 void hcsr04_update(void) {
