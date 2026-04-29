@@ -15,7 +15,7 @@ const uint16_t melody_durations[] = {
 	200, 200, 200, 400,
 	200, 200, 200, 200, 200, 200, 200, 200, 200, 400
 };
-const uint8_t total_notes = 7;
+const uint8_t total_notes = 27;
 
 volatile uint32_t system_millis = 0; 
 uint32_t note_start_time = 0;
