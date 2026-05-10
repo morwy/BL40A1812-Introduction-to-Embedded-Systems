@@ -173,6 +173,20 @@ static void lcd_show_text(const char *text)
 	printf("%s(): displayed text \"%s\"\r\n", __FUNCTION__, text);
 }
 
+/*
+ * Reads keypad input and converts it into a floor number.
+ *
+ * Supported input:
+ * - Single digit floors confirmed with '#'
+ *   Example: 3#
+ *
+ * - Two digit floors entered directly
+ *   Example: 12
+ *
+ * Returns:
+ * - Valid floor number
+ * - FLOOR_NOT_SELECTED if input is incomplete or invalid
+ */
 static int8_t floor_choice(void)
 {
 	const uint8_t key = KEYPAD_GetKey();
@@ -209,6 +223,7 @@ static int8_t floor_choice(void)
 			}
 		}
 	}
+	// '#' acts as an ENTER/CONFIRM key
 	else if (key == '#')
 	{
 		if (input_index == 1)
@@ -252,6 +267,7 @@ state_t idle_state_transition_check(const int8_t requested_floor, const int8_t c
 	return IDLE;
 }
 
+// Performs actions when entering states
 static void on_enter(state_t new_state, int8_t *requested_floor, int8_t *current_floor)
 {
 	printf("%s(): new_state: %d\r\n", __FUNCTION__, new_state);
@@ -268,12 +284,12 @@ static void on_enter(state_t new_state, int8_t *requested_floor, int8_t *current
 		set_gpio(&movement_led); // turn movement LED ON
 
 		printf("Sending CMD_BUZZER_START command to UNO\r\n");
-		twi_master_write_to_slave(CMD_BUZZER_START);
+		twi_master_write_to_slave(CMD_BUZZER_START); // start buzzer melody
 		printf("CMD_BUZZER_START command sent to UNO\r\n");
 
 		char buf[MAX_TEXT_LENGTH];
 		sprintf(buf, "Current floor:  \r\n%d", *current_floor);
-		lcd_show_text(buf);
+		lcd_show_text(buf); // display current floor on LCD
 
 		break;
 	}
@@ -282,12 +298,12 @@ static void on_enter(state_t new_state, int8_t *requested_floor, int8_t *current
 		set_gpio(&movement_led); // turn movement LED ON
 
 		printf("Sending CMD_BUZZER_START command to UNO\r\n");
-		twi_master_write_to_slave(CMD_BUZZER_START);
+		twi_master_write_to_slave(CMD_BUZZER_START); // start buzzer melody
 		printf("CMD_BUZZER_START command sent to UNO\r\n");
 
 		char buf[MAX_TEXT_LENGTH];
 		sprintf(buf, "Current floor:  \r\n%d", *current_floor);
-		lcd_show_text(buf);
+		lcd_show_text(buf); // display current floor on LCD
 
 		break;
 	}
@@ -353,6 +369,7 @@ static void on_enter(state_t new_state, int8_t *requested_floor, int8_t *current
 	}
 }
 
+// Performs actions when looping same state
 static void on_loop(state_t current_state, int8_t *requested_floor, int8_t *current_floor)
 {
 	printf("%s(): current_state: %d\r\n", __FUNCTION__, current_state);
@@ -363,8 +380,8 @@ static void on_loop(state_t current_state, int8_t *requested_floor, int8_t *curr
 	{
 		_delay_ms(10);
 
-		int8_t floor = floor_choice();
-		if (floor >= 0)
+		int8_t floor = floor_choice(); // get the floor request from keypad
+		if (floor >= 0) // check for valid floor request
 		{
 			*requested_floor = floor;
 		}
@@ -373,20 +390,20 @@ static void on_loop(state_t current_state, int8_t *requested_floor, int8_t *curr
 	case GOING_UP:
 	{
 		_delay_ms(FLOOR_MOVING_SPEED_MS);
-		(*current_floor)++;
+		(*current_floor)++; // increment current floor
 
 		char buf[MAX_TEXT_LENGTH];
 		sprintf(buf, "Current floor:  \r\n%d", *current_floor);
-		lcd_show_text(buf);
+		lcd_show_text(buf); // display current floor on LCD
 		break;
 	}
 	case GOING_DOWN:
 	{
-		(*current_floor)--;
+		(*current_floor)--; // decrement current floor
 
 		char buf[MAX_TEXT_LENGTH];
 		sprintf(buf, "Current floor:  \r\n%d", *current_floor);
-		lcd_show_text(buf);
+		lcd_show_text(buf); // display current floor on LCD
 		_delay_ms(FLOOR_MOVING_SPEED_MS);
 		break;
 	}
@@ -419,6 +436,7 @@ static void on_loop(state_t current_state, int8_t *requested_floor, int8_t *curr
 	}
 }
 
+// Performs actions when exiting the state
 static void on_exit(state_t old_state, int8_t *requested_floor, int8_t *current_floor)
 {
 	printf("%s(): old_state: %d\r\n", __FUNCTION__, old_state);
@@ -429,7 +447,7 @@ static void on_exit(state_t old_state, int8_t *requested_floor, int8_t *current_
 	case GOING_DOWN:
 	{
 		printf("Sending CMD_BUZZER_STOP command to UNO\r\n");
-		twi_master_write_to_slave(CMD_BUZZER_STOP);
+		twi_master_write_to_slave(CMD_BUZZER_STOP); // stop buzzer melody
 		printf("CMD_BUZZER_STOP command sent to UNO\r\n");
 
 		clear_gpio(&movement_led);
@@ -507,7 +525,7 @@ int main(void)
 		case GOING_DOWN:
 		{
 			next_state = elevator_state;
-			if (requested_floor == current_floor)
+			if (requested_floor == current_floor) // check if requested floor is reached
 			{
 				// FLOOR REACHED
 				next_state = DOOR_OPENING;
@@ -532,19 +550,20 @@ int main(void)
 		}
 		case DOOR_CLOSING:
 		{
+			// If obstacle is detected at any time during this open period, enter OBSTACLE_DETECTION.
 			if (obstacle_status == STATUS_OBSTACLE)
 			{
 				next_state = OBSTACLE_DETECTION;
 				break;
 			}
 			
-			if (door_open_elapsed_ms < DOOR_CLOSING_DURATION_MS){
+			if (door_open_elapsed_ms < DOOR_CLOSING_DURATION_MS){ // check if the door closing time has elapsed
 				next_state = DOOR_CLOSING;
 				break;
 			}
 			
-			// If obstacle is detected at any time during this open period, enter OBSTACLE_DETECTION.
 
+			// Determine whether to go IDLE, GOING_UP or GOING_DOWN based on the requested floor
 			else if (requested_floor < current_floor)
 			{
 				next_state = GOING_DOWN;
@@ -584,11 +603,11 @@ int main(void)
 			   requested_floor,
 			   current_floor);
 
-		if (elevator_state == next_state)
+		if (elevator_state == next_state) // if the next state same, enter loop
 		{
 			on_loop(elevator_state, &requested_floor, &current_floor);
 		}
-		else
+		else // if the next state is different, exit old state and enter new state
 		{
 			on_exit(elevator_state, &requested_floor, &current_floor);
 			elevator_state = next_state;

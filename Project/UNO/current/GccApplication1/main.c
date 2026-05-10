@@ -14,72 +14,91 @@
 // --- GLOBAL VARIABLES ---
 volatile bool play_melody = false;
 volatile uint8_t obstacle_status = STATUS_CLEAR;
+volatile uint8_t led_toggles_remaining = 0; // Each blink is 2 toggles (on/off)
 
-// --- LED BLINK 3 TIMES ---
-static void blink_led(void)
+// Access the system timer from buzzer.c
+extern volatile uint32_t system_millis;
+static uint32_t last_led_update = 0;
+
+// --- NON-BLOCKING LED UPDATE ---
+static void led_update(void)
 {
-	uint8_t i = 0;
-	for (i = 0; i < 3; i++)
+	if (led_toggles_remaining == 0)
+		return;
+
+	uint32_t current_time = system_millis;
+
+	// Toggle every 100ms
+	if (current_time - last_led_update >= 100)
 	{
-		// LED on
-		OBSTACLE_PORT |= (1 << OBSTACLE_PIN);
-		_delay_ms(100);
-		// LED off
-		OBSTACLE_PORT &= ~(1 << OBSTACLE_PIN);
-		_delay_ms(100);
+		OBSTACLE_PORT ^= (1 << OBSTACLE_PIN); // Flip LED state
+		led_toggles_remaining--;
+		last_led_update = current_time;
+
+		// Ensure LED is off when finished
+		if (led_toggles_remaining == 0)
+		{
+			OBSTACLE_PORT &= ~(1 << OBSTACLE_PIN);
+		}
 	}
 }
 
 // --- I2C (TWI) INTERRUPT SERVICE ROUTINE ---
-ISR(TWI_vect) {
-	switch (TW_STATUS) {
-		
-		// Master gives us a sock
-		case TW_SR_SLA_ACK:
-		case TW_SR_DATA_ACK:
-		{
-			uint8_t command = TWDR; 
-			
-			if (command == CMD_OBSTACLE_ON) {
-				//OBSTACLE_PORT |= (1 << OBSTACLE_PIN);
-				printf("CMD_OBSTACLE_ON");
-				blink_led();
-				buzzer_start_melody_obstacle();
-			}
-			else if (command == CMD_OBSTACLE_OFF) {
-				//OBSTACLE_PORT &= ~(1 << OBSTACLE_PIN);
-				printf("CMD_OBSTACLE_OFF");
-				buzzer_stop_melody();
-			}
-			else if (command == CMD_BUZZER_START) {
-				printf("CMD_BUZZER_START");
-				buzzer_start_melody(); 			
-			}
-			else if (command == CMD_BUZZER_STOP) {
-				printf("CMD_BUZZER_STOP");
-				buzzer_stop_melody();  			
-			}
-			break;
-		}
+ISR(TWI_vect)
+{
+	switch (TW_STATUS)
+	{
 
-		// We give master a sock
-		case TW_ST_SLA_ACK:   
-		case TW_ST_DATA_ACK:  
+	// Master gives us a sock
+	case TW_SR_SLA_ACK:
+	case TW_SR_DATA_ACK:
+	{
+		uint8_t command = TWDR;
+
+		if (command == CMD_OBSTACLE_ON)
 		{
-			TWDR = obstacle_status; 
-			break;
+			// OBSTACLE_PORT |= (1 << OBSTACLE_PIN);
+			led_toggles_remaining = 6; // 3 blinks = 6 toggles
+			buzzer_start_obstacle_noise();
 		}
-		
-		default:
+		else if (command == CMD_OBSTACLE_OFF)
+		{
+			// OBSTACLE_PORT &= ~(1 << OBSTACLE_PIN);
+			printf("CMD_OBSTACLE_OFF");
+			buzzer_stop_melody();
+		}
+		else if (command == CMD_BUZZER_START)
+		{
+			printf("CMD_BUZZER_START");
+			buzzer_start_melody();
+		}
+		else if (command == CMD_BUZZER_STOP)
+		{
+			printf("CMD_BUZZER_STOP");
+			buzzer_stop_melody();
+		}
 		break;
 	}
-	
+
+	// We give master a sock
+	case TW_ST_SLA_ACK:
+	case TW_ST_DATA_ACK:
+	{
+		TWDR = obstacle_status;
+		break;
+	}
+
+	default:
+		break;
+	}
+
 	// Clear the interrupt flag and enable Acknowledgement to ready the bus for the next action
 	TWCR = (1 << TWEN) | (1 << TWIE) | (1 << TWINT) | (1 << TWEA);
 }
 
 // --- HARDWARE INITIALIZATION ---
-void init_hardware(void) {
+void init_hardware(void)
+{
 	OBSTACLE_DDR |= (1 << OBSTACLE_PIN);
 	OBSTACLE_PORT &= ~(1 << OBSTACLE_PIN);
 
@@ -87,27 +106,30 @@ void init_hardware(void) {
 	hcsr04_init();
 
 	TWAR = (UNO_I2C_ADDRESS << 1);
-	
+
 	// TWCR = control switches
 	// TWEN = Two-Wire ENable (Turns on I2C)
 	// TWIE = Two-Wire Interrupt Enable (allows I2c to trigger ISR(TwI_vect))
 	// TWEA = Two-Wire Enable Acknowledge (UNO sends ACK back automatically)
 	// TWINT = Two-Wire INTerrupt (readies the hardware for the first message)
 	TWCR = (1 << TWEN) | (1 << TWIE) | (1 << TWEA) | (1 << TWINT);
-	
-	//Set Enable Interrupts
+
+	// Set Enable Interrupts
 	sei();
 }
 
-int main(void) {
+int main(void)
+{
 	init_hardware();
 
-	while (1) {
-		
+	while (1)
+	{
+
 		hcsr04_update();
-		
+		led_update();
+
 		buzzer_update();
 	}
-	
+
 	return 0;
 }
