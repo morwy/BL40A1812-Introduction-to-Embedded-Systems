@@ -42,17 +42,21 @@ ISR(TWI_vect) {
 			
 			if (command == CMD_OBSTACLE_ON) {
 				//OBSTACLE_PORT |= (1 << OBSTACLE_PIN);
+				printf("CMD_OBSTACLE_ON");
 				blink_led();
-				buzzer_start_melody();
+				buzzer_start_melody_obstacle();
 			}
 			else if (command == CMD_OBSTACLE_OFF) {
 				//OBSTACLE_PORT &= ~(1 << OBSTACLE_PIN);
+				printf("CMD_OBSTACLE_OFF");
 				buzzer_stop_melody();
 			}
 			else if (command == CMD_BUZZER_START) {
+				printf("CMD_BUZZER_START");
 				buzzer_start_melody(); 			
 			}
 			else if (command == CMD_BUZZER_STOP) {
+				printf("CMD_BUZZER_STOP");
 				buzzer_stop_melody();  			
 			}
 			break;
