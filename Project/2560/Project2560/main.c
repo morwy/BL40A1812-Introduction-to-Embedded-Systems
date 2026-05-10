@@ -173,6 +173,20 @@ static void lcd_show_text(const char *text)
 	printf("%s(): displayed text \"%s\"\r\n", __FUNCTION__, text);
 }
 
+/*
+ * Reads keypad input and converts it into a floor number.
+ *
+ * Supported input:
+ * - Single digit floors confirmed with '#'
+ *   Example: 3#
+ *
+ * - Two digit floors entered directly
+ *   Example: 12
+ *
+ * Returns:
+ * - Valid floor number
+ * - FLOOR_NOT_SELECTED if input is incomplete or invalid
+ */
 static int8_t floor_choice(void)
 {
 	const uint8_t key = KEYPAD_GetKey();
@@ -209,6 +223,7 @@ static int8_t floor_choice(void)
 			}
 		}
 	}
+	// '#' acts as an ENTER/CONFIRM key
 	else if (key == '#')
 	{
 		if (input_index == 1)
