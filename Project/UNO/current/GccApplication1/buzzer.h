@@ -30,4 +30,7 @@ void buzzer_start_melody(void);
 void buzzer_stop_melody(void);
 void buzzer_update(void); // The non-blocking state machine
 
+void buzzer_start_melody_obstacle(void);
+void buzzer_update_obstacle(void);
+
 #endif
