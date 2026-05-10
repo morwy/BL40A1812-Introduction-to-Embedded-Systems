@@ -3,6 +3,7 @@
 #include <avr/interrupt.h>
 
 const uint16_t melody_notes[] = {
+<<<<<<< HEAD
 	NOTE_E5, NOTE_DS5, NOTE_E5, NOTE_DS5, NOTE_E5, NOTE_B4, NOTE_D5, NOTE_C5, NOTE_A4,
 	NOTE_C4, NOTE_E4, NOTE_A4, NOTE_B4,
 	NOTE_E4, NOTE_GS4, NOTE_B4, NOTE_C5,
@@ -16,6 +17,31 @@ const uint16_t melody_durations[] = {
 	200, 200, 200, 200, 200, 200, 200, 200, 200, 400
 };
 const uint8_t total_notes = 27;
+=======
+    NOTE_E5, NOTE_DS5};
+
+const uint16_t melody_durations[] = {
+    1000, 1000,};
+
+const uint16_t melody_notes1[] = {
+    NOTE_E5, NOTE_DS5, NOTE_E5, NOTE_DS5, NOTE_E5, NOTE_B4, NOTE_D5, NOTE_C5, NOTE_A4,
+    NOTE_C4, NOTE_E4, NOTE_A4, NOTE_B4,
+    NOTE_E4, NOTE_GS4, NOTE_B4, NOTE_C5,
+    NOTE_E4, NOTE_E5, NOTE_DS5, NOTE_E5, NOTE_DS5, NOTE_E5, NOTE_B4, NOTE_D5, NOTE_C5, NOTE_A4
+};
+
+const uint16_t melody_durations1[] = {
+    200, 200, 200, 200, 200, 200, 200, 200, 400,
+    200, 200, 200, 400,
+    200, 200, 200, 400,
+    200, 200, 200, 200, 200, 200, 200, 200, 200, 400
+};
+
+
+const uint8_t total_notes = 2;
+
+const uint8_t total_notes1 = 27;
+>>>>>>> 9a19859 (added comments to the UNO project)
 
 volatile uint32_t system_millis = 0; 
 uint32_t note_start_time = 0;
@@ -71,9 +97,10 @@ void buzzer_start_melody(void) {
 		is_playing = true;
 		current_note_index = 0;
 		note_start_time = system_millis;
-		set_buzzer_frequency(melody_notes[0]);
+		set_buzzer_frequency(melody_notes1[0]);
 	}
 }
+
 
 void buzzer_stop_melody(void) {
 	is_playing = false;
@@ -81,6 +108,35 @@ void buzzer_stop_melody(void) {
 }
 
 void buzzer_update(void) {
+	if (!is_playing) return; 
+	
+	uint32_t current_time = system_millis;
+	if ((current_time - note_start_time) >= melody_durations1[current_note_index]) {
+		
+		current_note_index++;
+
+		if (current_note_index >= total_notes1) {
+			current_note_index = 0; // Loop the melody
+		}
+
+		set_buzzer_frequency(melody_notes1[current_note_index]);
+		note_start_time = current_time;
+	}
+}
+
+
+// --- PUBLIC CONTROLS OBSTACLE ---
+void buzzer_start_obstacle_noise(void) {
+	if (!is_playing) {
+		is_playing = true;
+		current_note_index = 0;
+		note_start_time = system_millis;
+		set_buzzer_frequency(melody_notes[0]);
+	}
+}
+
+
+void buzzer_update_obstacle_noise(void) {
 	if (!is_playing) return; 
 	
 	uint32_t current_time = system_millis;

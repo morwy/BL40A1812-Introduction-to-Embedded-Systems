@@ -14,20 +14,29 @@
 // --- GLOBAL VARIABLES ---
 volatile bool play_melody = false;
 volatile uint8_t obstacle_status = STATUS_CLEAR;
+volatile uint8_t led_toggles_remaining = 0; // Each blink is 2 toggles (on/off)
 
-// --- LED BLINK 3 TIMES ---
-static void blink_led(void)
-{
-	uint8_t i = 0;
-	for (i = 0; i < 3; i++)
-	{
-		// LED on
-		OBSTACLE_PORT |= (1 << OBSTACLE_PIN);
-		_delay_ms(100);
-		// LED off
-		OBSTACLE_PORT &= ~(1 << OBSTACLE_PIN);
-		_delay_ms(100);
-	}
+// Access the system timer from buzzer.c
+extern volatile uint32_t system_millis;
+static uint32_t last_led_update = 0;
+
+// --- NON-BLOCKING LED UPDATE ---
+static void led_update(void) {
+    if (led_toggles_remaining == 0) return;
+
+    uint32_t current_time = system_millis;
+    
+    // Toggle every 100ms
+    if (current_time - last_led_update >= 100) {
+        OBSTACLE_PORT ^= (1 << OBSTACLE_PIN); // Flip LED state
+        led_toggles_remaining--;
+        last_led_update = current_time;
+        
+        // Ensure LED is off when finished
+        if (led_toggles_remaining == 0) {
+            OBSTACLE_PORT &= ~(1 << OBSTACLE_PIN);
+        }
+    }
 }
 
 // --- I2C (TWI) INTERRUPT SERVICE ROUTINE ---
@@ -42,8 +51,8 @@ ISR(TWI_vect) {
 			
 			if (command == CMD_OBSTACLE_ON) {
 				//OBSTACLE_PORT |= (1 << OBSTACLE_PIN);
-				blink_led();
-				buzzer_start_melody();
+				led_toggles_remaining = 6; // 3 blinks = 6 toggles
+				buzzer_start_obstacle_noise();
 			}
 			else if (command == CMD_OBSTACLE_OFF) {
 				//OBSTACLE_PORT &= ~(1 << OBSTACLE_PIN);
@@ -101,6 +110,7 @@ int main(void) {
 	while (1) {
 		
 		hcsr04_update();
+		led_update();
 		
 		buzzer_update();
 	}
