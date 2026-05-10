@@ -3,21 +3,6 @@
 #include <avr/interrupt.h>
 
 const uint16_t melody_notes[] = {
-<<<<<<< HEAD
-	NOTE_E5, NOTE_DS5, NOTE_E5, NOTE_DS5, NOTE_E5, NOTE_B4, NOTE_D5, NOTE_C5, NOTE_A4,
-	NOTE_C4, NOTE_E4, NOTE_A4, NOTE_B4,
-	NOTE_E4, NOTE_GS4, NOTE_B4, NOTE_C5,
-	NOTE_E4, NOTE_E5, NOTE_DS5, NOTE_E5, NOTE_DS5, NOTE_E5, NOTE_B4, NOTE_D5, NOTE_C5, NOTE_A4
-};
-
-const uint16_t melody_durations[] = {
-	200, 200, 200, 200, 200, 200, 200, 200, 400,
-	200, 200, 200, 400,
-	200, 200, 200, 400,
-	200, 200, 200, 200, 200, 200, 200, 200, 200, 400
-};
-const uint8_t total_notes = 27;
-=======
     NOTE_E5, NOTE_DS5};
 
 const uint16_t melody_durations[] = {
@@ -41,7 +26,6 @@ const uint16_t melody_durations1[] = {
 const uint8_t total_notes = 2;
 
 const uint8_t total_notes1 = 27;
->>>>>>> 9a19859 (added comments to the UNO project)
 
 volatile uint32_t system_millis = 0; 
 uint32_t note_start_time = 0;
