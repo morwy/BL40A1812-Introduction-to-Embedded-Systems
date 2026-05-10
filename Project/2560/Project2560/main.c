@@ -307,7 +307,6 @@ static void on_enter(state_t new_state, int8_t *requested_floor, int8_t *current
         // so we can poll the UNO obstacle status 10 times
         door_open_elapsed_ms = 0;
 		lcd_show_text("Door closing");
-		_delay_ms(DOOR_CLOSING_DURATION_MS); // door led is one for 2 seconds
 		break;
 	}
 	case FAULT:
