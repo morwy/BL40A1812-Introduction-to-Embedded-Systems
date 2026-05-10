@@ -15,7 +15,16 @@ const uint16_t melody_durations[] = {
 	200, 200, 200, 400,
 	200, 200, 200, 200, 200, 200, 200, 200, 200, 400
 };
+
+const uint16_t melody_notes_obstacle[] = {
+	NOTE_E5, NOTE_DS5};
+
+const uint16_t melody_durations_obstacle[] = {
+	200, 200};
+	
 const uint8_t total_notes = 27;
+const uint8_t total_notes_obstacle = 2;
+
 
 volatile uint32_t system_millis = 0; 
 uint32_t note_start_time = 0;
@@ -93,6 +102,33 @@ void buzzer_update(void) {
 		}
 
 		set_buzzer_frequency(melody_notes[current_note_index]);
+		note_start_time = current_time;
+	}
+}
+
+// --- PUBLIC CONTROLS OBSTACLE ---
+void buzzer_start_melody_obstacle(void) {
+	if (!is_playing) {
+		is_playing = true;
+		current_note_index = 0;
+		note_start_time = system_millis;
+		set_buzzer_frequency(melody_notes_obstacle[0]);
+	}
+}
+
+void buzzer_update_obstacle(void) {
+	if (!is_playing) return;
+	
+	uint32_t current_time = system_millis;
+	if ((current_time - note_start_time) >= melody_durations_obstacle[current_note_index]) {
+		
+		current_note_index++;
+
+		if (current_note_index >= total_notes_obstacle) {
+			current_note_index = 0; // Loop the melody
+		}
+
+		set_buzzer_frequency(melody_notes_obstacle[current_note_index]);
 		note_start_time = current_time;
 	}
 }
